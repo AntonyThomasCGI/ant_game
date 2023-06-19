@@ -1,18 +1,23 @@
-#include "sprite_renderer.hpp"
+
+#include "chunk_renderer.hpp"
+
+#include <iostream>
 
 
-SpriteRenderer::SpriteRenderer(Shader &shader)
+ChunkRenderer::ChunkRenderer(Shader &shader)
 {
     this->shader = shader;
     this->initRenderData();
 }
 
-SpriteRenderer::~SpriteRenderer()
+
+ChunkRenderer::~ChunkRenderer()
 {
     glDeleteVertexArrays(1, &this->quadVAO);
 }
 
-void SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color)
+
+void ChunkRenderer::DrawChunk(Texture2D &texture1, Texture2D &texture2, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color)
 {
     // prepare transformations
     this->shader.Use();
@@ -30,27 +35,45 @@ void SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec
     // render textured quad
     //this->shader.SetVector3f("spriteColor", color);
 
-    glActiveTexture(GL_TEXTURE0);
-    texture.Bind();
+    glActiveTexture(GL_TEXTURE0 + 0);
+    texture1.Bind();
+
+    glActiveTexture(GL_TEXTURE0 + 1);
+    texture2.Bind();
 
     glBindVertexArray(this->quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 }
 
-void SpriteRenderer::initRenderData()
+
+void ChunkRenderer::initRenderData()
 {
     // configure VAO/VBO
     unsigned int VBO;
+
+    //float x1, x2, y1, y2;
+    //float tileX = 5.0;
+    //float tileY = 1.0;
+
+    //x1 = (32.0f * (tileX - 1.0f)) / (32.0f * 5.0f);
+    //x2 = (32.0f * tileX) / (32.0f * 5.0f);
+    //y1 = (32.0f * (tileY - 1.0f)) / (32.0f * 3.0f);
+    //y2 = (32.0f * tileY) / (32.0f * 3.0f);
+
+    //std::cout << "x: " << x1 << " <---> " << x2 << std::endl;
+    //std::cout << "y: " << y1 << " <---> " << y2 << std::endl;
+
+    // Use vert pos as texture coord.
     float vertices[] = {
         // pos      // tex
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, //0.0f, 1.0f,// x1, y2,
+        1.0f, 0.0f, //1.0f, 0.0f,// x2, y1,
+        0.0f, 0.0f, //0.0f, 0.0f,// x1, y1,
 
-        0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, //0.0f, 1.0f,// x1, y2,
+        1.0f, 1.0f, //1.0f, 1.0f,// x2, y2,
+        1.0f, 0.0f, //1.0f, 0.0f,// x2, y1,
     };
 
     glGenVertexArrays(1, &this->quadVAO);
@@ -61,7 +84,7 @@ void SpriteRenderer::initRenderData()
 
     glBindVertexArray(this->quadVAO);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }

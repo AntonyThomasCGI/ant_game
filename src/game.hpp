@@ -24,6 +24,8 @@ public:
     unsigned int Width;
     unsigned int Height;
 
+    bool wireFrameMode = false;
+
     Game(unsigned int width, unsigned int height);
     ~Game();
 

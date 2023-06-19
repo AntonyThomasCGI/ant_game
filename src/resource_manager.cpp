@@ -96,6 +96,8 @@ Texture2D ResourceManager::loadTextureFromFile(const char *file, bool alpha)
         texture.Internal_Format = GL_RGBA;
         texture.Image_Format = GL_RGBA;
     }
+    texture.Wrap_S = GL_CLAMP_TO_BORDER;
+    texture.Wrap_T = GL_CLAMP_TO_BORDER;
     // load image
     int width, height, nrChannels;
     unsigned char* data = stbi_load(file, &width, &height, &nrChannels, 0);

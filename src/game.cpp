@@ -8,6 +8,7 @@
 #include "game_object.hpp"
 #include "ant.hpp"
 #include "map.hpp"
+#include "chunk_renderer.hpp"
 
 #include <iostream>
 #include <time.h>
@@ -18,7 +19,7 @@ SpriteRenderer *Renderer;
 AntObject *Ant;
 GameObject *Hotdog;
 GameObject *HomeNest;
-SpriteRenderer *MapRenderer;
+ChunkRenderer *MapRenderer;
 
 
 Game::Game(unsigned int width, unsigned int height)
@@ -42,18 +43,18 @@ void Game::init()
 {
     srand(static_cast<unsigned int>(time (NULL)));  // Randomize seed
 
+    glLineWidth(3.0f);
+
     ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\sprite.vert", "C:\\dev\\ant_game\\resources\\sprite.frag", nullptr, "sprite");
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
     ResourceManager::GetShader("sprite").Use().SetInteger("sprite", 0);
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
 
-    ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\dirt_tiles.png", true, "dirt_tiles");
-
     int checkWidth = 160;
     int checkHeight = 90;
-    ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\checker.vert", "C:\\dev\\ant_game\\resources\\checker.frag", nullptr, "checker");
-    ResourceManager::GetShader("checker").Use().SetInteger("checker", 0);
-    ResourceManager::GetShader("checker").SetMatrix4("projection", projection);
+    //ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\checker.vert", "C:\\dev\\ant_game\\resources\\checker.frag", nullptr, "checker");
+    //ResourceManager::GetShader("checker").Use().SetInteger("checker", 0);
+    //ResourceManager::GetShader("checker").SetMatrix4("projection", projection);
     int** mapData = Map::Generate(checkWidth, checkHeight, 41, 10);
 
     Texture2D mapTexture;
@@ -63,8 +64,18 @@ void Game::init()
     mapTexture.Image_Format = GL_RED_INTEGER;
     mapTexture.Generate(checkWidth, checkHeight, mapData);
     ResourceManager::Textures["map"] = mapTexture;
-    MapRenderer = new SpriteRenderer(ResourceManager::GetShader("checker"));
+    //MapRenderer = new SpriteRenderer(ResourceManager::GetShader("checker"));
     free(mapData);
+
+    Texture2D dirtTex = ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\dirt_tiles.png", true, "dirt_tiles");
+    Shader tileShader = ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\tile.vert", "C:\\dev\\ant_game\\resources\\tile.frag", nullptr, "tile");
+
+    tileShader.Use().SetInteger("tileTex", 0);
+    tileShader.SetInteger("mapTex", 1);
+    tileShader.SetVector2f("textureDimensions", glm::vec2(dirtTex.Width, dirtTex.Height));
+    tileShader.SetMatrix4("projection", projection);
+    MapRenderer = new ChunkRenderer(tileShader);
+
 
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\ant.png", true, "ant");
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\background.jpg", false, "background");
@@ -106,6 +117,18 @@ void Game::processInput(float dt)
     {
         Ant->Rotation += velocity;
     }
+    if (this->keys[GLFW_KEY_F3] && !this->keysProcessed[GLFW_KEY_F3])
+    {
+        // Toggle wire frame
+        if (this->wireFrameMode) {
+            this->wireFrameMode = false;
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        } else {
+            this->wireFrameMode = true;
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        this->keysProcessed[GLFW_KEY_F3] = true;
+    }
 }
 
 void Game::resize(int width, int height)
@@ -130,8 +153,8 @@ void Game::update(float dt)
 
 void Game::render()
 {
-    //Renderer->DrawSprite(ResourceManager::GetTexture("dirt_tiles"), glm::vec2(0.0f), glm::vec2(this->Width, this->Height));
-    MapRenderer->DrawSprite(ResourceManager::GetTexture("map"), glm::vec2(0.0f), glm::vec2(this->Width, this->Height));
+    MapRenderer->DrawChunk(ResourceManager::GetTexture("dirt_tiles"), ResourceManager::GetTexture("map"), glm::vec2(100.0f), glm::vec2(700.0f, 700.0f));
+    //MapRenderer->DrawSprite(ResourceManager::GetTexture("map"), glm::vec2(0.0f), glm::vec2(this->Width, this->Height));
     HomeNest->Draw(*Renderer);
     //Renderer->DrawSprite(ResourceManager::GetTexture("ant"), glm::vec2(-0.5f, -0.5f), glm::vec2(1.0f, 1.0f), 0.0f, glm::vec3(0.8f, 0.7f, 0.1));
     //Renderer->DrawSprite(ResourceManager::GetTexture("ant"), glm::vec2(this->Width / 2.0f - 100.0, this->Height / 2.0f - 300.0), glm::vec2(400.0f), 45.0f);
