@@ -50,12 +50,12 @@ void Game::init()
     ResourceManager::GetShader("sprite").Use().SetInteger("sprite", 0);
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
 
-    int checkWidth = 160;
-    int checkHeight = 90;
+    int checkWidth = 16;
+    int checkHeight = 16;
     //ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\checker.vert", "C:\\dev\\ant_game\\resources\\checker.frag", nullptr, "checker");
     //ResourceManager::GetShader("checker").Use().SetInteger("checker", 0);
     //ResourceManager::GetShader("checker").SetMatrix4("projection", projection);
-    int** mapData = Map::Generate(checkWidth, checkHeight, 41, 10);
+    int** mapData = Map::Generate(checkWidth, checkHeight, 41, 2);
 
     Texture2D mapTexture;
     mapTexture.Filter_Min = GL_NEAREST;

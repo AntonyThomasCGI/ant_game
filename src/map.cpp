@@ -67,10 +67,111 @@ void printGrid(int **grid, unsigned int width, unsigned int height) {
     std::cout << "==grid==" << std::endl;
     for (int i = 0; i < height; i++ ) {
         for (int j = 0; j < width; j++ ) {
-            std::string c = grid[i][j] ? "#" : " ";
-            std::cout << c;
+            //std::string c = grid[i][j] ? "#" : " ";
+            //std::cout << c;
+            std::cout << "[" << grid[i][j] << "]";
         }
         std::cout << std::endl;
+    }
+}
+
+
+void calculateTileIDs(int **grid, unsigned int width, unsigned int height) {
+
+    int **tmpGrid = allocateGrid(width, height);
+
+    // Represent each possible neighbouring wall as a bit flag.
+    const unsigned char N = 0x01;
+    const unsigned char E = 0x04;
+    const unsigned char S = 0x10;
+    const unsigned char W = 0x40;
+
+    copyGrid(grid, tmpGrid, width, height);
+    for (int row = 0; row < height; row++ ) {
+        for (int col = 0; col < width; col++ ) {
+            if (tmpGrid[row][col])
+                continue; // Walls stay 1.0
+
+            // Initialize our 8-bit char to 0.
+            unsigned char walls = 0x00;
+
+            // North
+            if (row < (width - 1)) {
+                if (tmpGrid[row + 1][col]) {
+                    walls |= S;  // Open GL flips iamge, for now reverse N/S
+                }
+            }
+            // South
+            if (row > 0) {
+                if (tmpGrid[row - 1][col]) {
+                    walls |= N;  // Open GL flips iamge, for now reverse N/S
+                }
+            }
+            // East
+            if (col > 0) {
+                if (tmpGrid[row][col - 1]) {
+                    walls |= W;
+                }
+            }
+            // West
+            if (col < (width - 1)) {
+                if (tmpGrid[row][col + 1]) {
+                    walls |= E;
+                }
+            }
+
+            // Check for every possible combination of NESW and set corrisponding texture ID.
+            switch (walls) {
+                case 0x00:
+                    // Most common case is no neighbouring walls where we leave grid unchanged.
+                    break;
+                case N:
+                    grid[row][col] = 4;
+                    break;
+                case (N | E):
+                    grid[row][col] = 5;
+                    break;
+                case E:
+                    grid[row][col] = 10;
+                    break;
+                case (S | E):
+                    grid[row][col] = 15;
+                    break;
+                case S:
+                    grid[row][col] = 14;
+                    break;
+                case (S | W):
+                    grid[row][col] = 13;
+                    break;
+                case W:
+                    grid[row][col] = 8;
+                    break;
+                case (N | W):
+                    grid[row][col] = 3;
+                    break;
+                case (N | S):
+                    grid[row][col] = 16;
+                    break;
+                case (E | W):
+                    grid[row][col] = 17;
+                    break;
+                case (N | W | E):
+                    grid[row][col] = 2;
+                    break;
+                case (S | W | E):
+                    grid[row][col] = 7;
+                    break;
+                case (N | W | S):
+                    grid[row][col] = 11;
+                    break;
+                case (N | E | S):
+                    grid[row][col] = 12;
+                    break;
+                case (N | E | S | W):
+                    grid[row][col] = 6;
+                    break;
+            }
+        }
     }
 }
 
@@ -115,6 +216,8 @@ int **Map::Generate(unsigned int width, unsigned int height, int noiseDensity, i
         }
     }
     free(tmpGrid);
+
+    calculateTileIDs(grid, width, height);
 
     return grid;
 }

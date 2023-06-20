@@ -7,34 +7,68 @@ uniform sampler2D tileTex;
 uniform isampler2D mapTex;
 
 uniform vec2 textureDimensions;
-//uniform vec3 spriteColor;
 
 void main()
 {
-    //float tileX = 4.0;
-    //float tileY = 0.0;
+    int wallValue = texture(mapTex, TexCoords).r;
 
-    // TODO should be determined by mapTex and pre calculated on cpu
-    vec2 tiles[256] = vec2[](
-        vec2(1.0, 1.0), vec2(0.0, 0.0), vec2(4.0, 2.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(3.0, 2.0), vec2(2.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(3.0, 1.0), vec2(4.0, 0.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(3.0, 0.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(0.0, 1.0), vec2(2.0, 0.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(5.0, 5.0), vec2(2.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(0.0, 0.0), vec2(5.0, 5.0), vec2(5.0, 5.0), vec2(5.0, 5.0), vec2(5.0, 5.0), vec2(4.0, 2.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(0.0, 2.0), vec2(5.0, 5.0), vec2(5.0, 5.0), vec2(5.0, 5.0), vec2(2.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(0.0, 1.0), vec2(5.0, 5.0), vec2(5.0, 5.0), vec2(2.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(0.0, 2.0), vec2(1.0, 2.0), vec2(1.0, 2.0), vec2(2.0, 2.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0),
-        vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, 1.0)
-    );
+    vec2 tile;
+    switch (wallValue) {
+        case 0:  // Air
+            tile = vec2(-1.0, -1.0);  // Use UV that does not exist to render "air".
+            break;
+        case 1:  // Wall
+            tile = vec2(0.0, 0.0);
+            break;
+        case 4:  // N
+            tile = vec2(3.0, 0.0);
+            break;
+        case 5:  // NE
+            tile = vec2(4.0, 0.0);
+            break;
+        case 10:  // E
+            tile = vec2(4.0, 1.0);
+            break;
+        case 15:  // SE
+            tile = vec2(4.0, 2.0);
+            break;
+        case 14:  // S
+            tile = vec2(3.0, 2.0);
+            break;
+        case 13:  // SW
+            tile = vec2(2.0, 2.0);
+            break;
+        case 8:  // W
+            tile = vec2(2.0, 1.0);
+            break;
+        case 3:  // NW
+            tile = vec2(2.0, 0.0);
+            break;
+        case 16:  // NS
+            tile = vec2(0.0, 3.0);
+            break;
+        case 17:  // EW
+            tile = vec2(1.0, 3.0);
+            break;
+        case 2:  // NWE
+            tile = vec2(1.0, 0.0);
+            break;
+        case 7:  // SWE
+            tile = vec2(1.0, 1.0);
+            break;
+        case 11:  // NWS
+            tile = vec2(0.0, 2.0);
+            break;
+        case 12:  // NES
+            tile = vec2(1.0, 2.0);
+            break;
+        case 6:  // NESW
+            tile = vec2(0.0, 1.0);
+            break;
+    }
 
-    float nTiles = sqrt(tiles.length());
+    //float nTiles = sqrt(tiles.length());
+    float nTiles = 16;
 
     // Get width/height of texture in number of tiles.
     float tileWidth = textureDimensions.x / 32.0;
@@ -47,24 +81,10 @@ void main()
     float chunkedV = (TexCoords.y - (1.0 / nTiles) * floor(TexCoords.y * nTiles)) * nTiles;
 
     // Get index of tile based on UV position.
-    int tileIndex = int(TexCoords.x * nTiles) + int(TexCoords.y * nTiles) * int(nTiles);
+    //int tileIndex = int(TexCoords.x * nTiles) + int(TexCoords.y * nTiles) * int(nTiles);
 
-    float tileCoordX = (chunkedU / tileWidth) + ((1.0 / tileWidth) * tiles[tileIndex].x);
-    //float tileCoordX = (32.0 * (tileX - 1.0)) / (32.0 * 5.0) * TexCoords.x;
-    float tileCoordY = (chunkedV / tileHeight) + ((1.0 / tileHeight) * tiles[tileIndex].y);
+    float tileCoordX = (chunkedU / tileWidth) + ((1.0 / tileWidth) * tile.x);
+    float tileCoordY = (chunkedV / tileHeight) + ((1.0 / tileHeight) * tile.y);
 
-    if (TexCoords.x >= 0.0) {
-        color = texture(tileTex, vec2(tileCoordX, tileCoordY));
-    } else {
-        int value = texture(mapTex, TexCoords).r;
-        if (value > 0) {
-            color = vec4(0.15f, 0.125f, 0.1f, 1.0f);
-        } else {
-            color = vec4(0.6f, 0.5f, 0.4f, 1.0f);
-
-        }
-    }
-    //color = vec4(1.0, 1.0, 1.0, 1.0);
-    //color = vec4(spriteColor, 1.0);
-    //color = vec4(0.9, 0.6, 0.1, 1.0);
+    color = texture(tileTex, vec2(tileCoordX, tileCoordY));
 }
