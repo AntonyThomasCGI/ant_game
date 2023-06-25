@@ -12,6 +12,6 @@ AntObject::AntObject(glm::vec2 pos, glm::vec2 size, Texture2D sprite, glm::vec3 
 
 void AntObject::addHeldItem(GameObject *item)
 {
-    heldItems.push_back(item);
+    this->heldItems.push_back(item);
 }
 

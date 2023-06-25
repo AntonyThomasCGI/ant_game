@@ -4,9 +4,10 @@
 #include <iostream>
 
 
-ChunkRenderer::ChunkRenderer(Shader &shader)
+ChunkRenderer::ChunkRenderer(Shader &shader, Texture2D &mapTex)
 {
     this->shader = shader;
+    this->mapTex = mapTex;
     this->initRenderData();
 }
 
@@ -17,7 +18,7 @@ ChunkRenderer::~ChunkRenderer()
 }
 
 
-void ChunkRenderer::DrawChunk(Texture2D &texture1, Texture2D &texture2, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color)
+void ChunkRenderer::DrawChunk(Texture2D &texture1, glm::vec2 position, glm::vec2 size, float rotate, glm::vec3 color)
 {
     // prepare transformations
     this->shader.Use();
@@ -39,7 +40,7 @@ void ChunkRenderer::DrawChunk(Texture2D &texture1, Texture2D &texture2, glm::vec
     texture1.Bind();
 
     glActiveTexture(GL_TEXTURE0 + 1);
-    texture2.Bind();
+    this->mapTex.Bind();
 
     glBindVertexArray(this->quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -52,28 +53,16 @@ void ChunkRenderer::initRenderData()
     // configure VAO/VBO
     unsigned int VBO;
 
-    //float x1, x2, y1, y2;
-    //float tileX = 5.0;
-    //float tileY = 1.0;
-
-    //x1 = (32.0f * (tileX - 1.0f)) / (32.0f * 5.0f);
-    //x2 = (32.0f * tileX) / (32.0f * 5.0f);
-    //y1 = (32.0f * (tileY - 1.0f)) / (32.0f * 3.0f);
-    //y2 = (32.0f * tileY) / (32.0f * 3.0f);
-
-    //std::cout << "x: " << x1 << " <---> " << x2 << std::endl;
-    //std::cout << "y: " << y1 << " <---> " << y2 << std::endl;
-
     // Use vert pos as texture coord.
     float vertices[] = {
         // pos      // tex
-        0.0f, 1.0f, //0.0f, 1.0f,// x1, y2,
-        1.0f, 0.0f, //1.0f, 0.0f,// x2, y1,
-        0.0f, 0.0f, //0.0f, 0.0f,// x1, y1,
+        0.0f, 1.0f, //0.0f, 1.0f,
+        1.0f, 0.0f, //1.0f, 0.0f,
+        0.0f, 0.0f, //0.0f, 0.0f,
 
-        0.0f, 1.0f, //0.0f, 1.0f,// x1, y2,
-        1.0f, 1.0f, //1.0f, 1.0f,// x2, y2,
-        1.0f, 0.0f, //1.0f, 0.0f,// x2, y1,
+        0.0f, 1.0f, //0.0f, 1.0f,
+        1.0f, 1.0f, //1.0f, 1.0f,
+        1.0f, 0.0f, //1.0f, 0.0f,
     };
 
     glGenVertexArrays(1, &this->quadVAO);

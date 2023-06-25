@@ -20,3 +20,10 @@ message(STATUS "Adding Source(s) to executable: ${SOURCES}")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} glfw3)
+
+
+#if(MSVC)
+#    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+#else()
+#    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+#endif()

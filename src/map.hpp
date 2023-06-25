@@ -1,16 +1,30 @@
 #ifndef MAP_HPP
 #define MAP_HPP
 
-#define MAP(width, height, A) {int i,j,_ii,_jj;for(i=0,_ii=width;i<_ii;i++)for(j=0,_jj=height;j<_jj;j++){A};}
+#include <glm/glm.hpp>
+
+#include "chunk_renderer.hpp"
 
 
 class Map
 {
 public:
-    static int **Generate(unsigned int width, unsigned int height, int noiseDensity=50, int iterations=0);
+    int **grid;
+    unsigned int Width;
+    unsigned int Height;
+    ChunkRenderer *chunkRenderer;
+
+    Map(unsigned int width, unsigned int height, Shader &shader, int noiseDensity=50, int iterations=1);
+    virtual ~Map();
+
+    void drawChunks();
 
 private:
-    Map() { }
+    void generate(int noiseDensity=50, int iterations=0);
+    void calculateTileIDs();
+    void copyGrid(int **grid, int **newGrid);
+    int **randomNoiseGrid(int noiseDensity);
+    int **allocateGrid();
 };
 
 #endif

@@ -46,7 +46,7 @@ void Texture2D::Generate(unsigned int width, unsigned int height, int** data)
 
     //glEnable(GL_TEXTURE_2D);  // Enable 2D texture
 
-    // Correct texture distortion in perpective projection
+    // Correct texture distortion in perspective projection
     //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 

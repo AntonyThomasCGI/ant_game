@@ -8,7 +8,6 @@
 #include "game_object.hpp"
 #include "ant.hpp"
 #include "map.hpp"
-#include "chunk_renderer.hpp"
 
 #include <iostream>
 #include <time.h>
@@ -19,7 +18,7 @@ SpriteRenderer *Renderer;
 AntObject *Ant;
 GameObject *Hotdog;
 GameObject *HomeNest;
-ChunkRenderer *MapRenderer;
+Map *map;
 
 
 Game::Game(unsigned int width, unsigned int height)
@@ -35,7 +34,7 @@ Game::~Game()
     delete Renderer;
     delete Hotdog;
     delete HomeNest;
-    delete MapRenderer;
+    delete map;
 }
 
 
@@ -45,42 +44,23 @@ void Game::init()
 
     glLineWidth(3.0f);
 
-    ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\sprite.vert", "C:\\dev\\ant_game\\resources\\sprite.frag", nullptr, "sprite");
+    Shader spriteShader = ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\sprite.vert", "C:\\dev\\ant_game\\resources\\sprite.frag", nullptr, "sprite");
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
-    ResourceManager::GetShader("sprite").Use().SetInteger("sprite", 0);
-    ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
+    spriteShader.Use().SetInteger("sprite", 0);
+    spriteShader.SetMatrix4("projection", projection);
 
-    int checkWidth = 16;
-    int checkHeight = 16;
-    //ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\checker.vert", "C:\\dev\\ant_game\\resources\\checker.frag", nullptr, "checker");
-    //ResourceManager::GetShader("checker").Use().SetInteger("checker", 0);
-    //ResourceManager::GetShader("checker").SetMatrix4("projection", projection);
-    int** mapData = Map::Generate(checkWidth, checkHeight, 41, 2);
-
-    Texture2D mapTexture;
-    mapTexture.Filter_Min = GL_NEAREST;
-    mapTexture.Filter_Max = GL_NEAREST;
-    mapTexture.Internal_Format = GL_R32I;
-    mapTexture.Image_Format = GL_RED_INTEGER;
-    mapTexture.Generate(checkWidth, checkHeight, mapData);
-    ResourceManager::Textures["map"] = mapTexture;
-    //MapRenderer = new SpriteRenderer(ResourceManager::GetShader("checker"));
-    free(mapData);
-
-    Texture2D dirtTex = ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\dirt_tiles.png", true, "dirt_tiles");
-    Shader tileShader = ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\tile.vert", "C:\\dev\\ant_game\\resources\\tile.frag", nullptr, "tile");
-
-    tileShader.Use().SetInteger("tileTex", 0);
-    tileShader.SetInteger("mapTex", 1);
-    tileShader.SetVector2f("textureDimensions", glm::vec2(dirtTex.Width, dirtTex.Height));
-    tileShader.SetMatrix4("projection", projection);
-    MapRenderer = new ChunkRenderer(tileShader);
-
+    Shader chunkShader = ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\chunk.vert", "C:\\dev\\ant_game\\resources\\chunk.frag", nullptr, "chunk");
+    chunkShader.Use().SetInteger("tileTex", 0);
+    chunkShader.SetInteger("mapTex", 1);
+    chunkShader.SetMatrix4("projection", projection);
 
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\ant.png", true, "ant");
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\background.jpg", false, "background");
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\hotdog.png", true, "food");
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\sandcastle.png", true, "sandcastle");
+    ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\dirt_tiles.png", true, "dirt_tiles");
+
+    map = new Map(31, 31, chunkShader, 41, 4);
 
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
 
@@ -153,7 +133,8 @@ void Game::update(float dt)
 
 void Game::render()
 {
-    MapRenderer->DrawChunk(ResourceManager::GetTexture("dirt_tiles"), ResourceManager::GetTexture("map"), glm::vec2(100.0f), glm::vec2(700.0f, 700.0f));
+    map->drawChunks();
+    //MapRenderer->DrawChunk(ResourceManager::GetTexture("dirt_tiles"), glm::vec2(100.0f), glm::vec2(700.0f, 700.0f));
     //MapRenderer->DrawSprite(ResourceManager::GetTexture("map"), glm::vec2(0.0f), glm::vec2(this->Width, this->Height));
     HomeNest->Draw(*Renderer);
     //Renderer->DrawSprite(ResourceManager::GetTexture("ant"), glm::vec2(-0.5f, -0.5f), glm::vec2(1.0f, 1.0f), 0.0f, glm::vec3(0.8f, 0.7f, 0.1));
