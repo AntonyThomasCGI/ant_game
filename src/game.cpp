@@ -42,6 +42,7 @@ void Game::init()
 {
     srand(static_cast<unsigned int>(time (NULL)));  // Randomize seed
 
+    // Wireframe line width
     glLineWidth(3.0f);
 
     Shader spriteShader = ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\sprite.vert", "C:\\dev\\ant_game\\resources\\sprite.frag", nullptr, "sprite");
@@ -51,16 +52,14 @@ void Game::init()
 
     Shader chunkShader = ResourceManager::LoadShader("C:\\dev\\ant_game\\resources\\chunk.vert", "C:\\dev\\ant_game\\resources\\chunk.frag", nullptr, "chunk");
     chunkShader.Use().SetInteger("tileTex", 0);
-    chunkShader.SetInteger("mapTex", 1);
     chunkShader.SetMatrix4("projection", projection);
 
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\ant.png", true, "ant");
-    ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\background.jpg", false, "background");
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\hotdog.png", true, "food");
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\sandcastle.png", true, "sandcastle");
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\dirt_tiles.png", true, "dirt_tiles");
 
-    map = new Map(31, 31, chunkShader, 41, 4);
+    map = new Map(80, 48, chunkShader, 42, 5);
 
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
 

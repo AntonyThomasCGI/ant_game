@@ -64,6 +64,7 @@ int main() {
         AntGame.update(deltaTime);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        //glClearColor(56.f / 255.0f, 46.0f / 255.0f, 40.0f / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         AntGame.render();
 

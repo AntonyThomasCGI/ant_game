@@ -6,60 +6,97 @@
 #include <stdio.h>
 #include <iostream>
 #include <random>
+#include <exception>
+
+#define CHUNKSIZE 16
 
 
 Map::Map(unsigned int width, unsigned int height, Shader &shader, int noiseDensity, int iterations)
 {
+    if (width % CHUNKSIZE != 0 || height % CHUNKSIZE != 0) {
+        std::cout << "Error: Width, Height for map must be divisible by CHUNKSIZE " << CHUNKSIZE << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    int chunksX = width / CHUNKSIZE;
+    int chunksY = height / CHUNKSIZE;
+
     this->Width = width;
     this->Height = height;
     this->generate(noiseDensity, iterations);
 
-    Texture2D mapTexture;
-    mapTexture.Filter_Min = GL_NEAREST;
-    mapTexture.Filter_Max = GL_NEAREST;
-    mapTexture.Internal_Format = GL_R32I;
-    mapTexture.Image_Format = GL_RED_INTEGER;
-    mapTexture.Generate(width, height, grid);
+    shader.SetInteger("mapTex", 1);
 
-    // Register map tex in resource manager.
-    ResourceManager::Textures["map"] = mapTexture;
+    for (int y = 0; y < chunksY; y++) {
+        for (int x = 0; x < chunksX; x++) {
+            //int **chunkData = allocateGrid(CHUNKSIZE, CHUNKSIZE);
+            int **chunkData = create2DArray<int>(CHUNKSIZE, CHUNKSIZE);
+            for (int i = 0; i < CHUNKSIZE; i++) {
+                for (int j = 0; j < CHUNKSIZE; j++) {
+                    int indexIntoGridY = CHUNKSIZE * y + i;
+                    int indexIntoGridX = CHUNKSIZE * x + j;
 
-    this->chunkRenderer = new ChunkRenderer(shader, mapTexture);
+                    chunkData[i][j] = grid[indexIntoGridY][indexIntoGridX];
+                }
+            }
+            Texture2D mapTexture;
+            mapTexture.Filter_Min = GL_NEAREST;
+            mapTexture.Filter_Max = GL_NEAREST;
+            mapTexture.Internal_Format = GL_R32I;
+            mapTexture.Image_Format = GL_RED_INTEGER;
+            mapTexture.Generate(CHUNKSIZE, CHUNKSIZE, chunkData);
+
+            ChunkRenderer *chunkRenderer = new ChunkRenderer(shader, mapTexture);
+            this->chunkRenderers.push_back(chunkRenderer);
+            //new ChunkRenderer(shader, mapTexture)
+        }
+    }
+
+    //Texture2D mapTexture;
+    //mapTexture.Filter_Min = GL_NEAREST;
+    //mapTexture.Filter_Max = GL_NEAREST;
+    //mapTexture.Internal_Format = GL_R32I;
+    //mapTexture.Image_Format = GL_RED_INTEGER;
+    //mapTexture.Generate(width, height, grid);
+
+    //// Register map tex in resource manager.
+    //ResourceManager::Textures["map"] = mapTexture;
+
+
+    //this->chunkRenderer = new ChunkRenderer(shader, mapTexture);
 }
 
 
 Map::~Map()
 {
-    free(grid);
-    delete chunkRenderer;
+    //free(grid);
+
+    for (ChunkRenderer* cr : this->chunkRenderers) {
+        delete cr;
+    }
+    this->chunkRenderers.clear();
 }
 
 
 void Map::drawChunks()
 {
-    this->chunkRenderer->DrawChunk(ResourceManager::GetTexture("dirt_tiles"), glm::vec2(100.0f), glm::vec2(700.0f, 700.0f));
+    int chunksX = this->Width / CHUNKSIZE;
+    int chunksY = this->Height / CHUNKSIZE;
+
+    float chunkSize = 400.0f;
+
+    unsigned int i = 0;
+    for (ChunkRenderer* cr : this->chunkRenderers) {
+        //
+        int xOffset = i % chunksX;
+        int yOffset = int(i - xOffset) / chunksX;
+
+        cr->DrawChunk(ResourceManager::GetTexture("dirt_tiles"), glm::vec2(xOffset * chunkSize, yOffset * chunkSize), glm::vec2(chunkSize));
+
+        i += 1;
+    }
 }
 
-int** Map::allocateGrid() {
-    int **newGrid;
-
-    newGrid = (int **)calloc((size_t)(this->Height), sizeof(int *));
-    if (newGrid == NULL) {
-        std::cout << "Could not initialize array" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    newGrid[0] = (int *)calloc((size_t)(this->Height * this->Width), sizeof(int));
-    if (newGrid[0] == NULL) {
-        std::cout << "Could not initialize array" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    for (int i = 1; i < this->Height; i++ ) {
-        newGrid[i] = newGrid[i - 1] + this->Width;
-    }
-
-    return newGrid;
-}
 
 /**
  * @brief Generate grid of random noise.
@@ -69,16 +106,17 @@ int** Map::allocateGrid() {
  * @param noiseDensity Density of initial noise, provided as percentage from 0-100.
  * @return int**
  */
-int** Map::randomNoiseGrid(int noiseDensity)
+int** Map::randomNoiseGrid(unsigned int width, unsigned int height, int noiseDensity)
 {
-    int **randomGrid = allocateGrid();
+    //int **randomGrid = allocateGrid(width, height);
+    int **randomGrid = create2DArray<int>(width, height);
 
     std::random_device rand_dev;
     std::mt19937 gen(rand_dev());
     std::uniform_int_distribution<int> distr(0, 99);
 
-    for (int i = 0; i < this->Height; i++ ) {
-        for (int j = 0; j < this->Width; j++ ) {
+    for (int i = 0; i < height; i++ ) {
+        for (int j = 0; j < width; j++ ) {
             distr(gen) >= noiseDensity ? randomGrid[i][j] = 1 : randomGrid[i][j] = 0;
         }
     }
@@ -111,8 +149,7 @@ void printGrid(int **grid, unsigned int width, unsigned int height) {
 
 
 void Map::calculateTileIDs() {
-
-    int **tmpGrid = allocateGrid();
+    int ** tmpGrid = create2DArray<int>(this->Width, this->Height);
 
     // Represent each possible neighboring wall as a bit flag.
     const unsigned char N = 0x01;
@@ -142,7 +179,7 @@ void Map::calculateTileIDs() {
             unsigned char walls = 0x00;
 
             // North
-            if (row < (this->Width - 1)) {
+            if (row < this->Width - 1) {
                 if (tmpGrid[row + 1][col]) {
                     walls |= S;  // Open GL flips iamge so reverse N/S
                 }
@@ -153,14 +190,14 @@ void Map::calculateTileIDs() {
                     walls |= N;  // Open GL flips iamge so reverse N/S
                 }
             }
-            // East
+            // West
             if (col > 0) {
                 if (tmpGrid[row][col - 1]) {
                     walls |= W;
                 }
             }
-            // West
-            if (col < (this->Width - 1)) {
+            // East
+            if (col < this->Width - 1) {
                 if (tmpGrid[row][col + 1]) {
                     walls |= E;
                 }
@@ -219,6 +256,9 @@ void Map::calculateTileIDs() {
             }
         }
     }
+
+    // Clean up.
+    delete2DArray(tmpGrid);
 }
 
 
@@ -231,8 +271,8 @@ void Map::calculateTileIDs() {
  */
 void Map::generate(int noiseDensity, int iterations)
 {
-    grid = randomNoiseGrid(noiseDensity);
-    int **tmpGrid = allocateGrid();
+    grid = randomNoiseGrid(this->Width, this->Height, noiseDensity);
+    int **tmpGrid = create2DArray<int>(this->Width, this->Height);
 
     for (int i = 0; i < iterations; i++ ) {
         copyGrid(grid, tmpGrid);
@@ -258,7 +298,7 @@ void Map::generate(int noiseDensity, int iterations)
             }
         }
     }
-    free(tmpGrid);
+    delete2DArray(tmpGrid);
 
     calculateTileIDs();
 }
