@@ -59,17 +59,26 @@ void Game::init()
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\sandcastle.png", true, "sandcastle");
     ResourceManager::LoadTexture("C:\\dev\\ant_game\\resources\\dirt_tiles.png", true, "dirt_tiles");
 
-    map = new Map(80, 48, chunkShader, 42, 5);
+    map = new Map(160, 160, chunkShader, 42, 5);
 
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
 
-    glm::vec2 antPos = glm::vec2(this->Width / 2.0f - 100.0, this->Height / 2.0f - 300.0);
+    // Start ant at 0, 0. If a wall exists, increment x axis until no wall.
+    glm::vec2 antPos = glm::vec2(0.0f);
+    int i = 0;
+    while ( 1 ) {
+        int tile = map->tileAt(antPos);
+        if (tile != 0 && tile != 8) {
+            break;
+        }
+        antPos = glm::vec2(antPos.x + TILESIZE, antPos.y);
+    }
     Ant = new AntObject(antPos, glm::vec2(ANT_SIZE), ResourceManager::GetTexture("ant"));
 
-    glm::vec2 hotdogPos = glm::vec2(glm::linearRand(50.0f, this->Width - 100.0f), glm::linearRand(100.0f, this->Height - 50.0f));
+    glm::vec2 hotdogPos = glm::vec2(glm::linearRand(0.0f, float(this->Width)), glm::linearRand(0.0f, float(this->Height)));
     Hotdog = new GameObject(hotdogPos, glm::vec2(HOTDOG_SIZE), ResourceManager::GetTexture("food"));
 
-    glm::vec2 nestPos = glm::vec2(glm::linearRand(50.0f, this->Width - 100.0f), glm::linearRand(100.0f, this->Height - 50.0f));
+    glm::vec2 nestPos = glm::vec2(glm::linearRand(0.0f, float(this->Width)), glm::linearRand(0.0f, float(this->Height)));
     HomeNest = new GameObject(nestPos, glm::vec2(NEST_SIZE), ResourceManager::GetTexture("sandcastle"));
 }
 
@@ -78,24 +87,31 @@ void Game::processInput(float dt)
 {
     float velocity = ANT_VELOCITY * dt;
 
+    float moveX = 0, moveY = 0, rotate = 0;
+
     if (this->keys[GLFW_KEY_W] && !this->keysProcessed[GLFW_KEY_W])
     {
-        Ant->Position.x += velocity * cos(glm::radians(90.0 - Ant->Rotation));
-        Ant->Position.y -= velocity * sin(glm::radians(90.0 - Ant->Rotation));
+        moveX += velocity * cos(glm::radians(90.0 - Ant->Rotation));
+        moveY += -velocity * sin(glm::radians(90.0 - Ant->Rotation));
     }
     if (this->keys[GLFW_KEY_S] && !this->keysProcessed[GLFW_KEY_S])
     {
-        Ant->Position.x -= velocity * cos(glm::radians(90.0 - Ant->Rotation));
-        Ant->Position.y += velocity * sin(glm::radians(90.0 - Ant->Rotation));
+        moveX += -velocity * cos(glm::radians(90.0 - Ant->Rotation));
+        moveY += velocity * sin(glm::radians(90.0 - Ant->Rotation));
     }
     if (this->keys[GLFW_KEY_A] && !this->keysProcessed[GLFW_KEY_A])
     {
-        Ant->Rotation -= velocity;
+        rotate -= velocity * 0.8;
     }
     if (this->keys[GLFW_KEY_D] && !this->keysProcessed[GLFW_KEY_D])
     {
-        Ant->Rotation += velocity;
+        rotate += velocity * 0.8;
     }
+    // Move the Ant.
+    if (moveX != 0 | moveY != 0 | rotate != 0) {
+        Ant->move(glm::vec2(moveX, moveY), rotate);
+    }
+
     if (this->keys[GLFW_KEY_F3] && !this->keysProcessed[GLFW_KEY_F3])
     {
         // Toggle wire frame
@@ -132,14 +148,16 @@ void Game::update(float dt)
 
 void Game::render()
 {
-    map->drawChunks();
+    // Camera follows ant, so inverse ant current position + half screen width/height to center.
+    glm::vec2 cameraTransform = Ant->Position * -1.0f + glm::vec2(this->Width / 2.0f, this->Height / 2.0f);
+    map->drawChunks(cameraTransform);
     //MapRenderer->DrawChunk(ResourceManager::GetTexture("dirt_tiles"), glm::vec2(100.0f), glm::vec2(700.0f, 700.0f));
     //MapRenderer->DrawSprite(ResourceManager::GetTexture("map"), glm::vec2(0.0f), glm::vec2(this->Width, this->Height));
-    HomeNest->Draw(*Renderer);
+    HomeNest->Draw(*Renderer, cameraTransform);
     //Renderer->DrawSprite(ResourceManager::GetTexture("ant"), glm::vec2(-0.5f, -0.5f), glm::vec2(1.0f, 1.0f), 0.0f, glm::vec3(0.8f, 0.7f, 0.1));
     //Renderer->DrawSprite(ResourceManager::GetTexture("ant"), glm::vec2(this->Width / 2.0f - 100.0, this->Height / 2.0f - 300.0), glm::vec2(400.0f), 45.0f);
-    Ant->Draw(*Renderer);
-    Hotdog->Draw(*Renderer);
+    Ant->Draw(*Renderer, cameraTransform);
+    Hotdog->Draw(*Renderer, cameraTransform);
     //Renderer->DrawSprite(ResourceManager::GetTexture("food"), glm::vec2(300.f, 400.0f), glm::vec2(50.0f, 50.0f));
 }
 
@@ -151,6 +169,66 @@ void Game::doCollisions()
         if (checkCollision(Ant, Hotdog)) {
             Ant->addHeldItem(Hotdog);
         }
+    }
+
+    /*
+    We want to generate a hit box that looks like this:
+    0............1
+    ..............
+    ..............
+    ..............
+    ..............
+    ..............
+    ..............
+    .......A......
+    ..............
+    ..............
+    ..............
+    ..............
+    ..............
+    2............3
+
+    So solve for a/b which at 90 degrees ant rotation will be 6 and 18 respectively.
+
+              .
+             /|
+            /A|
+           /  |
+          /   |
+         /    |
+      c /     | b
+       /      |
+      /       |
+     /       _|
+    /B______|_|
+        a
+    */
+
+    float angleA = atan(6.0 / 18.0);
+    float hypot = sqrt(pow(18.0, 2) + pow(6.0, 2));
+    float hitBox0XOffset = hypot * cos(glm::radians(90.0 - Ant->Rotation) + angleA);
+    float hitBox0YOffset = hypot * sin(glm::radians(90.0 - Ant->Rotation) + angleA);
+    float hitBox1XOffset = hypot * cos(glm::radians(90.0 - Ant->Rotation) - angleA);
+    float hitBox1YOffset = hypot * sin(glm::radians(90.0 - Ant->Rotation) - angleA);
+    float hitBox0X = Ant->Position.x + hitBox0XOffset;
+    float hitBox0Y = Ant->Position.y + hitBox0YOffset;
+    float hitBox1X = Ant->Position.x + hitBox1XOffset;
+    float hitBox1Y = Ant->Position.y + hitBox1YOffset;
+    float hitBox2X = Ant->Position.x + hitBox1XOffset * -1.0;
+    float hitBox2Y = Ant->Position.y + hitBox1YOffset * -1.0;
+    float hitBox3X = Ant->Position.x + hitBox0XOffset * -1.0;
+    float hitBox3Y = Ant->Position.y + hitBox0YOffset * -1.0;
+
+    int current0 = map->tileAt(glm::vec2(hitBox0X, hitBox0Y));
+    int current1 = map->tileAt(glm::vec2(hitBox1X, hitBox1Y));
+    int current2 = map->tileAt(glm::vec2(hitBox2X, hitBox2Y));
+    int current3 = map->tileAt(glm::vec2(hitBox3X, hitBox3Y));
+
+    // Tile ID of 0 or 8 is wall.
+    if (current0 == 0 || current1 == 0 || current2 == 0 || current3 == 0 ||
+        current0 == 8 || current1 == 8 || current2 == 8 || current3 == 8) {
+        Ant->Position = Ant->previousPosition;
+        Ant->Rotation = Ant->previousRotation;
     }
 }
 

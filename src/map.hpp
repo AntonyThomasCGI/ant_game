@@ -7,6 +7,10 @@
 
 #include "chunk_renderer.hpp"
 
+#define CHUNKSIZE 16  // Number of tiles in chunk.
+#define CHUNKWIDTH 800  // Size of chunk in units.
+#define TILESIZE 50  // Size of tiles in units (CHUNKWIDTH / CHUNKSIZE).
+
 
 // https://stackoverflow.com/a/21944048
 template <typename T>
@@ -53,19 +57,19 @@ public:
     unsigned int Width;
     unsigned int Height;
     std::vector<ChunkRenderer*> chunkRenderers;
-    //ChunkRenderer *chunkRenderer;
 
     Map(unsigned int width, unsigned int height, Shader &shader, int noiseDensity=50, int iterations=1);
     virtual ~Map();
 
-    void drawChunks();
+    void drawChunks(glm::vec2 cameraTransform=glm::vec2(0.0f));
+
+    int tileAt(glm::vec2 coords);
 
 private:
     void generate(int noiseDensity=50, int iterations=0);
     void calculateTileIDs();
     void copyGrid(int **grid, int **newGrid);
     int **randomNoiseGrid(unsigned int width, unsigned int height, int noiseDensity);
-    //int **allocateGrid(unsigned int width, unsigned int height);
 };
 
 #endif

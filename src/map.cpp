@@ -8,8 +8,6 @@
 #include <random>
 #include <exception>
 
-#define CHUNKSIZE 16
-
 
 Map::Map(unsigned int width, unsigned int height, Shader &shader, int noiseDensity, int iterations)
 {
@@ -29,7 +27,6 @@ Map::Map(unsigned int width, unsigned int height, Shader &shader, int noiseDensi
 
     for (int y = 0; y < chunksY; y++) {
         for (int x = 0; x < chunksX; x++) {
-            //int **chunkData = allocateGrid(CHUNKSIZE, CHUNKSIZE);
             int **chunkData = create2DArray<int>(CHUNKSIZE, CHUNKSIZE);
             for (int i = 0; i < CHUNKSIZE; i++) {
                 for (int j = 0; j < CHUNKSIZE; j++) {
@@ -48,28 +45,14 @@ Map::Map(unsigned int width, unsigned int height, Shader &shader, int noiseDensi
 
             ChunkRenderer *chunkRenderer = new ChunkRenderer(shader, mapTexture);
             this->chunkRenderers.push_back(chunkRenderer);
-            //new ChunkRenderer(shader, mapTexture)
         }
     }
-
-    //Texture2D mapTexture;
-    //mapTexture.Filter_Min = GL_NEAREST;
-    //mapTexture.Filter_Max = GL_NEAREST;
-    //mapTexture.Internal_Format = GL_R32I;
-    //mapTexture.Image_Format = GL_RED_INTEGER;
-    //mapTexture.Generate(width, height, grid);
-
-    //// Register map tex in resource manager.
-    //ResourceManager::Textures["map"] = mapTexture;
-
-
-    //this->chunkRenderer = new ChunkRenderer(shader, mapTexture);
 }
 
 
 Map::~Map()
 {
-    //free(grid);
+    delete2DArray(grid);
 
     for (ChunkRenderer* cr : this->chunkRenderers) {
         delete cr;
@@ -78,20 +61,26 @@ Map::~Map()
 }
 
 
-void Map::drawChunks()
+void Map::drawChunks(glm::vec2 cameraTransform)
 {
-    int chunksX = this->Width / CHUNKSIZE;
-    int chunksY = this->Height / CHUNKSIZE;
-
-    float chunkSize = 400.0f;
+    float chunksX = this->Width / CHUNKSIZE;
+    float chunksY = this->Height / CHUNKSIZE;
 
     unsigned int i = 0;
-    for (ChunkRenderer* cr : this->chunkRenderers) {
-        //
-        int xOffset = i % chunksX;
-        int yOffset = int(i - xOffset) / chunksX;
+    for (ChunkRenderer* chunkRenderer : this->chunkRenderers) {
+        // Get coordinates for current chunks from index.
+        int xChunkOffset = i % int(chunksX);
+        int yChunkOffset = int(i - xChunkOffset) / chunksX;
 
-        cr->DrawChunk(ResourceManager::GetTexture("dirt_tiles"), glm::vec2(xOffset * chunkSize, yOffset * chunkSize), glm::vec2(chunkSize));
+        // Get coordinates in pixels and center chunks by subtracting half of total chunks.
+        int xOffset = (xChunkOffset - chunksX / 2.0f) * CHUNKWIDTH;
+        int yOffset = (yChunkOffset - chunksY / 2.0f) * CHUNKWIDTH;
+
+        chunkRenderer->DrawChunk(
+            ResourceManager::GetTexture("dirt_tiles"),
+            glm::vec2(xOffset, yOffset) + cameraTransform,
+            glm::vec2(CHUNKWIDTH)
+        );
 
         i += 1;
     }
@@ -135,11 +124,16 @@ void Map::copyGrid(int **oldGrid, int **newGrid) {
 }
 
 
-void printGrid(int **grid, unsigned int width, unsigned int height) {
-    std::cout << "==grid==" << std::endl;
+void printGrid(int **grid, unsigned int width, unsigned int height, int pointAtX = -1, int pointAtY = -1) {
+    //std::cout << "==grid==" << std::endl;
     for (int i = 0; i < height; i++ ) {
         for (int j = 0; j < width; j++ ) {
-            std::string c = grid[i][j] ? "#" : " ";
+            std::string c;
+            if (i == pointAtY && j == pointAtX) {
+                c = "X";
+            } else {
+                c = grid[i][j] == 0 ? "#" : " ";
+            }
             std::cout << c;
             //std::cout << "[" << grid[i][j] << "]";
         }
@@ -300,5 +294,41 @@ void Map::generate(int noiseDensity, int iterations)
     }
     delete2DArray(tmpGrid);
 
+#if 0
+    // Generate square border map.
+    grid = create2DArray<int>(this->Width, this->Height);
+    for (int row = 0; row < this->Height; row++ ) {
+        for (int col = 0; col < this->Width; col++ ) {
+            if (row < 2 || row > this->Height - 3 || col < 2 || col > this->Width - 3) {
+                grid[row][col] = 1;
+            } else {
+                grid[row][col] = 0;
+            }
+        }
+    }
+#endif
+
     calculateTileIDs();
+}
+
+
+int Map::tileAt(glm::vec2 coords)
+{
+    // Get number of tiles in grid on x/y.
+    float tilesX = this->Width / TILESIZE;
+    float tilesY = this->Height / TILESIZE;
+
+    // Convert transform unit coordinates to tile index coordinates.
+    float tileCoordX = coords.x / TILESIZE;
+    float tileCoordY = coords.y / TILESIZE;
+
+    // Offset coordinates to index grid (ant [0, 0] is middle of grid).
+    int gridCoordX = tileCoordX + this->Width / 2;
+    int gridCoordY = tileCoordY + this->Height / 2;
+
+    if (gridCoordX < 0 || gridCoordX >= this->Width || gridCoordY < 0 || gridCoordY >= this->Height) {
+        return 18;  // Out of map bounds is considered air (id=18).
+    }
+
+    return grid[gridCoordY][gridCoordX];
 }
