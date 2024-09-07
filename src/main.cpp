@@ -2,6 +2,7 @@
 #include <chrono>
 #include <iostream>
 
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -24,47 +25,47 @@ public:
         squareGuy1 = engine.graphics->addGameObject("squareGuy1");
     }
 
-    void update() {
+    void update(float deltaTime) {
 
         static auto startTime = std::chrono::high_resolution_clock::now();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-        float rotation = time * glm::radians(90.0f);
+        float rotation = time * glm::radians(90.0f) * 100.0f;
 
         squareGuy1->rotate = rotation;
 
     }
 
-    void processInput(int key, int scancode, int action, int mode) {
-        if (key == GLFW_KEY_ESCAPE) {
+    void processInput(float deltaTime) {
+        if (keys[GLFW_KEY_ESCAPE]) {
             exitApp();
             return;
         }
-        float velocity = 10.0f;
+
+        float velocity = 300.0f * deltaTime;
         float moveX = 0, moveY = 0, rotate = 0;
 
-        if (key == GLFW_KEY_W)
+        if (keys[GLFW_KEY_W] && !keysProcessed[GLFW_KEY_W])
         {
             moveX += -velocity * cos(glm::radians(90.0 - squareGuy->rotate));
             moveY += velocity * sin(glm::radians(90.0 - squareGuy->rotate));
         }
-        if (key == GLFW_KEY_S)
+        if (keys[GLFW_KEY_S] && !keysProcessed[GLFW_KEY_S])
         {
             moveX += velocity * cos(glm::radians(90.0 - squareGuy->rotate));
             moveY += -velocity * sin(glm::radians(90.0 - squareGuy->rotate));
         }
-        if (key == GLFW_KEY_A)
+        if (keys[GLFW_KEY_A] && !keysProcessed[GLFW_KEY_A])
         {
             rotate += velocity * 0.8;
         }
-        if (key == GLFW_KEY_D)
+        if (keys[GLFW_KEY_D] && !keysProcessed[GLFW_KEY_D])
         {
             rotate -= velocity * 0.8;
         }
-        // Move the Ant.
+        // Move the square.
         if (moveX != 0 | moveY != 0 | rotate != 0) {
-            std::cout << "Moving square guy" << std::endl;
             squareGuy->move(glm::vec2(moveX, moveY), rotate);
         }
     }
