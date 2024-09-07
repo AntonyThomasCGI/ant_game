@@ -123,9 +123,24 @@ void VulkanGraphics::update()
 
     commandBuffers[currentFrame]->start();
 
-    for (const auto& [_, gameObj] : gameObjects) {
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = swapChain->getRenderPass();
+    renderPassInfo.framebuffer = swapChain->getCurrentFramebuffer();
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapChain->swapChainExtent;
+
+    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
+
+    vkCmdBeginRenderPass(commandBuffers[currentFrame]->getCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    for (const auto& [gameObjName, gameObj] : gameObjects) {
         gameObj->draw(*commandBuffers[currentFrame].get(), *swapChain.get(), currentFrame);
     }
+
+    vkCmdEndRenderPass(commandBuffers[currentFrame]->getCommandBuffer());
 
     commandBuffers[currentFrame]->end();
 

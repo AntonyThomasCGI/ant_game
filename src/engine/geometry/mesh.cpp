@@ -86,18 +86,6 @@ void Mesh::createIndexBuffer(CommandPool &commandPool)
 
 void Mesh::draw(CommandBuffer &commandBuffer, SwapChain &swapChain)
 {
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = swapChain.getRenderPass();
-    renderPassInfo.framebuffer = swapChain.getCurrentFramebuffer();
-    renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = swapChain.swapChainExtent;
-
-    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &clearColor;
-
-    vkCmdBeginRenderPass(commandBuffer.getCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     VkBuffer vertexBuffers[] = {vertexBuffer};
     VkDeviceSize offsets[] = {0};
@@ -122,5 +110,4 @@ void Mesh::draw(CommandBuffer &commandBuffer, SwapChain &swapChain)
 
     vkCmdDrawIndexed(commandBuffer.getCommandBuffer(), static_cast<uint32_t>(indicies.size()), 1, 0, 0, 0);
 
-    vkCmdEndRenderPass(commandBuffer.getCommandBuffer());
 }

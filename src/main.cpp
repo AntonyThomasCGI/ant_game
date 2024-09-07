@@ -21,17 +21,18 @@ public:
     App(Window &window, Engine &engine) : AppBase(window, engine)
     {
         squareGuy = engine.graphics->addGameObject("squareGuy");
+        squareGuy1 = engine.graphics->addGameObject("squareGuy1");
     }
 
     void update() {
 
-        //static auto startTime = std::chrono::high_resolution_clock::now();
+        static auto startTime = std::chrono::high_resolution_clock::now();
 
-        //auto currentTime = std::chrono::high_resolution_clock::now();
-        //float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-        //float rotation = time * glm::radians(90.0f);
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        float rotation = time * glm::radians(90.0f);
 
-        //squareGuy->rotate = rotation;
+        squareGuy1->rotate = rotation;
 
     }
 
@@ -63,12 +64,14 @@ public:
         }
         // Move the Ant.
         if (moveX != 0 | moveY != 0 | rotate != 0) {
+            std::cout << "Moving square guy" << std::endl;
             squareGuy->move(glm::vec2(moveX, moveY), rotate);
         }
     }
 
 private:
     GameObject* squareGuy;
+    GameObject* squareGuy1;
 };
 
 
