@@ -22,7 +22,7 @@ public:
     ~Shader();
 
     void bind(VkCommandBuffer &commandBuffer, uint32_t currentFrame);
-    void updateUniformBuffer(glm::mat4 transform, uint32_t currentFrame, SwapChain &swapChain);
+    void updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain);
 
     std::unique_ptr<GraphicsPipeline> graphicsPipeline;
 

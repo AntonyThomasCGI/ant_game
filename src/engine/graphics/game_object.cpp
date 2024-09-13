@@ -47,5 +47,5 @@ void GameObject::draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32
     transform = glm::rotate(transform, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f));
     transform = glm::scale(transform, glm::vec3(scale, 1.0f));
 
-    shader->updateUniformBuffer(transform, currentFrame, swapChain);
+    shader->updateUniformBuffer(transform, color, currentFrame, swapChain);
 }

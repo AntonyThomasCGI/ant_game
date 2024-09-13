@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include <fstream>
 
-#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -14,8 +13,8 @@ struct UniformBufferObject {
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 proj;
+    glm::vec3 color;
 };
-
 
 
 static std::vector<char> readFile(const std::string& filename) {
@@ -77,7 +76,7 @@ void Shader::bind(VkCommandBuffer &commandBuffer, uint32_t currentFrame)
 
 }
 
-void Shader::updateUniformBuffer(glm::mat4 transform, uint32_t currentFrame, SwapChain &swapChain)
+void Shader::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain)
 {
     UniformBufferObject ubo{};
 
@@ -98,6 +97,7 @@ void Shader::updateUniformBuffer(glm::mat4 transform, uint32_t currentFrame, Swa
     float aspectRatio = (float) swapChain.swapChainExtent.width / (float) swapChain.swapChainExtent.height;
     //float targetWidth =  (float) swapChain->swapChainExtent.width;
     //float targetHeight = (float) swapChain->swapChainExtent.height;
+    // TODO, get the values from app startup or something
     float targetWidth = 800.0f;
     float targetHeight = 600.0f;
     float targetAspect = targetWidth / targetHeight;
@@ -108,7 +108,28 @@ void Shader::updateUniformBuffer(glm::mat4 transform, uint32_t currentFrame, Swa
 
     ubo.proj[1][1] *= -1;  // Flip y-axis (open-gl oriented library).
 
+    ubo.color = color;
+
     memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
+}
+
+
+void Shader::createDescriptorPool()
+{
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+
+    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+    if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor pool!");
+    }
 }
 
 
@@ -149,25 +170,6 @@ void Shader::createDescriptorSets()
 }
 
 
-void Shader::createDescriptorPool()
-{
-    VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-    VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-
-    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-    if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor pool!");
-    }
-}
-
-
 void Shader::createUniformBuffers(CommandPool &commandPool)
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
@@ -181,6 +183,7 @@ void Shader::createUniformBuffers(CommandPool &commandPool)
 
         vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
     }
+
 }
 
 

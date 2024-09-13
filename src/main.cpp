@@ -1,10 +1,11 @@
 
 #include <chrono>
 #include <iostream>
+#include <sstream>
 
-#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/random.hpp>
 
 #include "engine/app.hpp"
 #include "engine/engine.hpp"
@@ -12,6 +13,61 @@
 
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
+
+const unsigned int GRID_WIDTH = WIDTH / 40;
+const unsigned int GRID_HEIGHT = HEIGHT / 40;
+
+
+class Grid
+{
+public:
+
+    const float tileWidth = 40.0;
+
+    Grid(Engine &engine) {
+
+        float halfWidth = (WIDTH - tileWidth) / 2.0f;
+        float halfHeight = (HEIGHT - tileWidth) / 2.0f;
+
+        std::cout << "Building grid (" << GRID_WIDTH << ", " << GRID_HEIGHT << ")" << std::endl;
+
+        for (int i = 0; i < GRID_HEIGHT; i++ ) {
+            for (int j = 0; j < GRID_WIDTH; j++ ) {
+                std::stringstream s;
+                s << "tile_" << std::to_string(i) << "_" << std::to_string(j);
+                grid[i][j] = engine.graphics->addGameObject(s.str());
+
+                float yPos = i * tileWidth - halfHeight;
+                float xPos = j * tileWidth - halfWidth;
+
+                grid[i][j]->translate = glm::vec2(xPos, yPos);
+                grid[i][j]->scale = glm::vec2(tileWidth);
+
+
+                glm::vec3 randColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
+                grid[i][j]->color = randColor;
+            }
+        }
+    }
+
+    void update() {
+        for (int i = 0; i < GRID_HEIGHT; i++ ) {
+            for (int j = 0; j < GRID_WIDTH; j++ ) {
+                glm::vec3 currentColor = grid[i][j]->color;
+
+                glm::vec3 offset = glm::vec3(glm::linearRand(-0.05f, 0.05f), glm::linearRand(-0.05f, 0.05f), glm::linearRand(-0.05f, 0.05f));
+
+                glm::vec3 result = glm::clamp(currentColor + offset, 0.0f, 1.0f);
+
+                grid[i][j]->color = result;
+            }
+        }
+    }
+
+private:
+    GameObject* grid[GRID_HEIGHT][GRID_WIDTH];
+};
+
 
 
 class App : public AppBase
@@ -21,14 +77,18 @@ public:
 
     App(Window &window, Engine &engine) : AppBase(window, engine)
     {
-        squareGuy = engine.graphics->addGameObject("squareGuy");
-        squareGuy1 = engine.graphics->addGameObject("squareGuy1");
+        static auto startTime = std::chrono::high_resolution_clock::now();
+        grid = new Grid(engine);
+        squareGuy = engine.graphics->addGameObject("z");
+        squareGuy1 = engine.graphics->addGameObject("z1");
+    }
+
+    ~App()
+    {
+        delete grid;
     }
 
     void update(float deltaTime) {
-
-        static auto startTime = std::chrono::high_resolution_clock::now();
-
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
         float rotation = time * glm::radians(90.0f) * 100.0f;
@@ -68,11 +128,24 @@ public:
         if (moveX != 0 | moveY != 0 | rotate != 0) {
             squareGuy->move(glm::vec2(moveX, moveY), rotate);
         }
+
+        if (keys[GLFW_KEY_E] && !keysProcessed[GLFW_KEY_E]) {
+            glm::vec3 newColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
+            squareGuy->color = newColor;
+            keysProcessed[GLFW_KEY_E] = true;
+        }
+
+        if (keys[GLFW_KEY_Q] && !keysProcessed[GLFW_KEY_Q]) {
+            grid->update();
+        }
     }
 
 private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+
     GameObject* squareGuy;
     GameObject* squareGuy1;
+    Grid *grid;
 };
 
 
