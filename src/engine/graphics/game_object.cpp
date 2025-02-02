@@ -12,9 +12,9 @@
 
 
 
-GameObject::GameObject(LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain)
+GameObject::GameObject(LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain, TextureImage &textureImage)
 {
-    shader = std::make_unique<Shader>(logicalDevice.getDevice(), commandPool, swapChain, vertPath, fragPath);
+    shader = std::make_unique<Shader>(logicalDevice.getDevice(), commandPool, swapChain, textureImage, vertPath, fragPath);
 
     mesh = std::make_unique<Square>(&logicalDevice);
     mesh->createBuffers(commandPool);

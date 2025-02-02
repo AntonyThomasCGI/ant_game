@@ -13,12 +13,13 @@
 #include "logical_device.hpp"
 #include "pipeline.hpp"
 #include "swap_chain.hpp"
+#include "texture.hpp"
 
 
 class Shader
 {
 public:
-    Shader(VkDevice &device, CommandPool &commandPool, SwapChain &swapChain, std::string vertShader, std::string fragShader);
+    Shader(VkDevice &device, CommandPool &commandPool, SwapChain &swapChain, TextureImage &textureImage, std::string vertShader, std::string fragShader);
     ~Shader();
 
     void bind(VkCommandBuffer &commandBuffer, uint32_t currentFrame);
@@ -40,7 +41,7 @@ private:
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    void createDescriptorSets();
+    void createDescriptorSets(TextureImage &textureImage);
     void createDescriptorPool();
     void createUniformBuffers(CommandPool &commandPool);
     void createDescriptorSetLayout();

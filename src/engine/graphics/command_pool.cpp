@@ -25,7 +25,7 @@ CommandPool::~CommandPool()
 }
 
 
-void CommandPool::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+VkCommandBuffer CommandPool::beginSingleTimeCommands() {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -43,12 +43,10 @@ void CommandPool::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSiz
 
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-    VkBufferCopy copyRegion{};
-    copyRegion.srcOffset = 0;  // Optional
-    copyRegion.dstOffset = 0;  // Optional
-    copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    return commandBuffer;
+}
 
+void CommandPool::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo{};
@@ -57,10 +55,22 @@ void CommandPool::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSiz
     submitInfo.pCommandBuffers = &commandBuffer;
 
     vkQueueSubmit(logicalDevice.getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-    // You could also use a fence to wait here if you were submitting multiple transfers.
     vkQueueWaitIdle(logicalDevice.getGraphicsQueue());
 
     vkFreeCommandBuffers(logicalDevice.getDevice(), commandPool, 1, &commandBuffer);
+}
+
+
+void CommandPool::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;  // Optional
+    copyRegion.dstOffset = 0;  // Optional
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    endSingleTimeCommands(commandBuffer);
 }
 
 

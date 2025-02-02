@@ -38,6 +38,8 @@ add_library(${LIBRARY_NAME}
     graphics/surface.hpp
     graphics/swap_chain.cpp
     graphics/swap_chain.hpp
+    graphics/texture.cpp
+    graphics/texture.hpp
     renderers/sprite_renderer.cpp
     renderers/sprite_renderer.hpp
 )

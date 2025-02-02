@@ -1,5 +1,4 @@
 
-#include <chrono>
 #include <iostream>
 #include <sstream>
 
@@ -77,7 +76,6 @@ public:
 
     App(Window &window, Engine &engine) : AppBase(window, engine)
     {
-        static auto startTime = std::chrono::high_resolution_clock::now();
         grid = new Grid(engine);
         squareGuy = engine.graphics->addGameObject("z");
         squareGuy1 = engine.graphics->addGameObject("z1");
@@ -89,11 +87,7 @@ public:
     }
 
     void update(float deltaTime) {
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-        float rotation = time * glm::radians(90.0f) * 100.0f;
-
-        squareGuy1->rotate = rotation;
+        squareGuy1->move(glm::vec2(0.0f), 200.0f * deltaTime);
 
     }
 
@@ -141,8 +135,6 @@ public:
     }
 
 private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
-
     GameObject* squareGuy;
     GameObject* squareGuy1;
     Grid *grid;

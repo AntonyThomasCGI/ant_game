@@ -16,7 +16,7 @@ class GameObject
 {
 public:
 
-    GameObject(LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain);
+    GameObject(LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain, TextureImage &textureImage);
     ~GameObject();
 
     void move(glm::vec2 trans, float rot);

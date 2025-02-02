@@ -17,6 +17,7 @@
 #include "shader.hpp"
 #include "surface.hpp"
 #include "swap_chain.hpp"
+#include "texture.hpp"
 
 
 class VulkanGraphics {
@@ -38,6 +39,7 @@ private:
     std::unique_ptr<LogicalDevice> logicalDevice;
     std::unique_ptr<SwapChain> swapChain;
     std::unique_ptr<CommandPool> commandPool;
+    std::unique_ptr<TextureImage> textureImage;
 
     std::map<std::string, GameObject*> gameObjects;
 

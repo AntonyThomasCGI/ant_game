@@ -11,6 +11,15 @@
 #include "graphics.hpp"
 
 
+
+//TODO, resource manager
+# ifdef /* bad */ __APPLE__
+    const char* texturePath = "/Users/antony/dev/vulkan_grid/textures/ant.png";
+# else
+    const char* texturePath = "C:\\Users\\GGPC\\dev\\vulkan_grid\\textures\\ant.png";
+# endif
+
+
 VulkanGraphics::VulkanGraphics(Window &window) : window(window)
 {
     instance = std::make_unique<Instance>(window);
@@ -20,6 +29,7 @@ VulkanGraphics::VulkanGraphics(Window &window) : window(window)
     logicalDevice = std::make_unique<LogicalDevice>(*instance.get(), *surface.get(), *physicalDevice.get());
     swapChain = std::make_unique<SwapChain>(*surface.get(), *physicalDevice.get(), *logicalDevice.get(), window);
     commandPool = std::make_unique<CommandPool>(*physicalDevice.get(), *logicalDevice.get(), *surface.get());
+    textureImage = std::make_unique<TextureImage>(*physicalDevice.get(), *logicalDevice.get(), *commandPool.get(), texturePath);
 
     // hmm, maybe it's ok to use one set of cmd buffers / sync objects for every asset?
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -42,7 +52,7 @@ VulkanGraphics::~VulkanGraphics()
 
 GameObject* VulkanGraphics::addGameObject(std::string name)
 {
-    GameObject *gameObj = new GameObject(*logicalDevice.get(), *commandPool.get(), *swapChain.get());
+    GameObject *gameObj = new GameObject(*logicalDevice.get(), *commandPool.get(), *swapChain.get(), *textureImage.get());
     gameObjects[name] = gameObj;
 
     return gameObjects[name];

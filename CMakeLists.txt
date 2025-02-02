@@ -15,6 +15,7 @@ include_directories(
     external/glfw/include
     external/rocket
     external/glm
+    external/stb
 )
 
 
