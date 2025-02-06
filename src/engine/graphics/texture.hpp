@@ -9,7 +9,7 @@
 class TextureImage
 {
 public:
-    TextureImage(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, CommandPool &commandPool, const char* texturePath);
+    TextureImage(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, CommandPool &commandPool, std::string texturePath);
     ~TextureImage();
 
     const VkImageView getTextureImageView() const { return textureImageView; }
@@ -20,6 +20,8 @@ public:
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
     void createTextureImageView();
     void createTextureSampler();
+
+    //const VkImage &getTextureImage() const { return textureImage; };
 
 private:
     LogicalDevice logicalDevice;

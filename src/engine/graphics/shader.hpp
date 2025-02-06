@@ -19,30 +19,33 @@
 class Shader
 {
 public:
-    Shader(VkDevice &device, CommandPool &commandPool, SwapChain &swapChain, TextureImage &textureImage, std::string vertShader, std::string fragShader);
+    Shader(VkDevice &device, std::string vertShader, std::string fragShader);
+    //Shader(VkDevice &device, CommandPool &commandPool, SwapChain &swapChain, TextureImage &textureImage, std::string vertShader, std::string fragShader);
     ~Shader();
 
     void bind(VkCommandBuffer &commandBuffer, uint32_t currentFrame);
-    void updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain);
+    //void updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain);
 
-    std::unique_ptr<GraphicsPipeline> graphicsPipeline;
+    //std::unique_ptr<GraphicsPipeline> graphicsPipeline;
+    VkShaderModule vertShaderModule;
+    VkShaderModule fragShaderModule;
 
 private:
     VkDevice device;
 
-    VkDescriptorSetLayout descriptorSetLayout;
+    //VkDescriptorSetLayout descriptorSetLayout;
 
     VkShaderModule createShaderModule(const std::vector<char>& code);
 
-    std::vector<VkBuffer> uniformBuffers;
-    std::vector<VkDeviceMemory> uniformBuffersMemory;
-    std::vector<void*> uniformBuffersMapped;
+    //std::vector<VkBuffer> uniformBuffers;
+    //std::vector<VkDeviceMemory> uniformBuffersMemory;
+    //std::vector<void*> uniformBuffersMapped;
 
-    VkDescriptorPool descriptorPool;
-    std::vector<VkDescriptorSet> descriptorSets;
+    //VkDescriptorPool descriptorPool;
+    //std::vector<VkDescriptorSet> descriptorSets;
 
-    void createDescriptorSets(TextureImage &textureImage);
-    void createDescriptorPool();
-    void createUniformBuffers(CommandPool &commandPool);
-    void createDescriptorSetLayout();
+    //void createDescriptorSets(TextureImage &textureImage);
+    //void createDescriptorPool();
+    //void createUniformBuffers(CommandPool &commandPool);
+    //void createDescriptorSetLayout();
 };

@@ -12,11 +12,13 @@ class GraphicsPipeline
 public: GraphicsPipeline(VkDevice &device, SwapChain &swapChain, VkDescriptorSetLayout &descriptorSet, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule);
     ~GraphicsPipeline();
 
-    VkPipeline getGraphicsPipeline() const { return graphicsPipeline; }
-    VkPipelineLayout pipelineLayout;
+    VkPipeline getGraphicsPipeline() const { return graphicsPipeline; };
+
+    VkPipelineLayout getPipelineLayout() const { return pipelineLayout; };
 
 private:
     VkPipeline graphicsPipeline;
+    VkPipelineLayout pipelineLayout;
     VkDevice device;
 
     void createGraphicsPipeline(SwapChain &swapChain, VkDescriptorSetLayout &descriptorSet, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule);

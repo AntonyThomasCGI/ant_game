@@ -26,6 +26,8 @@ add_library(${LIBRARY_NAME}
     graphics/instance.hpp
     graphics/logical_device.cpp
     graphics/logical_device.hpp
+    graphics/material.cpp
+    graphics/material.hpp
     graphics/physical_device.cpp
     graphics/physical_device.hpp
     graphics/pipeline.cpp

@@ -11,13 +11,13 @@
 #include "geometry/shapes/square.hpp"
 #include "instance.hpp"
 #include "logical_device.hpp"
+#include "material.hpp"
 #include "physical_device.hpp"
 #include "pipeline.hpp"
 #include "render_pass.hpp"
 #include "shader.hpp"
 #include "surface.hpp"
 #include "swap_chain.hpp"
-#include "texture.hpp"
 
 
 class VulkanGraphics {
@@ -39,7 +39,7 @@ private:
     std::unique_ptr<LogicalDevice> logicalDevice;
     std::unique_ptr<SwapChain> swapChain;
     std::unique_ptr<CommandPool> commandPool;
-    std::unique_ptr<TextureImage> textureImage;
+    std::unique_ptr<Material> material;
 
     std::map<std::string, GameObject*> gameObjects;
 

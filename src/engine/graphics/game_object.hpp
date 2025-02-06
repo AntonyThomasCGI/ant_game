@@ -8,7 +8,8 @@
 #include "command_buffer.hpp"
 #include "command_pool.hpp"
 #include "geometry/shapes/square.hpp"
-#include "shader.hpp"
+#include "material.hpp"
+#include "physical_device.hpp"
 #include "swap_chain.hpp"
 
 
@@ -16,7 +17,7 @@ class GameObject
 {
 public:
 
-    GameObject(LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain, TextureImage &textureImage);
+    GameObject(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain);
     ~GameObject();
 
     void move(glm::vec2 trans, float rot);
@@ -29,6 +30,6 @@ public:
     void draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame);
 
 private:
-    std::unique_ptr<Shader> shader;
+    std::unique_ptr<Material> material;
     std::unique_ptr<Square> mesh;
 };
