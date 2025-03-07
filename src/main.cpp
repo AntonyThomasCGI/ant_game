@@ -142,16 +142,12 @@ private:
 
 
 int main() {
-    std::cout << "start" << std::endl;
-
     try {
         App app = App(WIDTH, HEIGHT);
         app.mainLoop();
     } catch (std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
     }
-
-    std::cout << "end" << std::endl;
 
     return EXIT_SUCCESS;
 };

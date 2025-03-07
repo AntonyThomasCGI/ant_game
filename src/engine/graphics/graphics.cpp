@@ -31,20 +31,17 @@ VulkanGraphics::VulkanGraphics(Window &window) : window(window)
 
 VulkanGraphics::~VulkanGraphics()
 {
-    std::cout << "cleanup" << std::endl;
-
-
-    std::cout << "cleanup2" << std::endl;
-
-    cleanupSyncObjects();
+    vkDeviceWaitIdle(logicalDevice->getDevice());
 
     delete swapChain;
-    delete commandPool;
-    delete surface;
 
     for (auto const& [name, gameObj] : gameObjects) {
         delete gameObj;
     }
+    cleanupSyncObjects();
+
+    delete commandPool;
+    delete surface;
 
     delete logicalDevice;
     delete physicalDevice;

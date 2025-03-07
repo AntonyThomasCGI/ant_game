@@ -24,7 +24,7 @@ public:
 private:
     LogicalDevice &logicalDevice;
 
-    std::unique_ptr<GraphicsPipeline> graphicsPipeline;
+    GraphicsPipeline *graphicsPipeline;
     std::unique_ptr<Shader> shader;
     std::unique_ptr<TextureImage> textureImage;
 

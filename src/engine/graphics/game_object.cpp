@@ -48,9 +48,6 @@ void GameObject::draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32
 {
     material->bind(commandBuffer, currentFrame);
 
-    std::cout << "bind mesh" << std::endl;
-
-    std::cout << "here" << std::endl;
     glm::mat4 transform{1.0f};
     //ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 

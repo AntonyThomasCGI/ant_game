@@ -24,12 +24,9 @@ public:
     //const VkImage &getTextureImage() const { return textureImage; };
 
 private:
-    LogicalDevice logicalDevice;
-    PhysicalDevice physicalDevice;
-    CommandPool commandPool;
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    LogicalDevice &logicalDevice;
+    PhysicalDevice &physicalDevice;
+    CommandPool &commandPool;
 
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;

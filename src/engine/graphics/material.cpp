@@ -2,6 +2,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <array>
+
 #include "material.hpp"
 #include "constants.hpp"
 
@@ -22,6 +24,8 @@ Material::Material(LogicalDevice &logicalDevice) : logicalDevice(logicalDevice)
 
 Material::~Material()
 {
+    delete graphicsPipeline;
+
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(logicalDevice.getDevice(), uniformBuffers[i], nullptr);
         vkFreeMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], nullptr);
@@ -33,11 +37,8 @@ Material::~Material()
 
 void Material::bind(CommandBuffer &commandBuffer, uint32_t currentFrame)
 {
-    std::cout << "bindPipeline" << std::endl;
     vkCmdBindPipeline(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipeline());
 
-    std::cout << "bindDescriptorSets" << std::endl;
-    std::cout << currentFrame << std::endl;
     vkCmdBindDescriptorSets(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(), 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
 }
@@ -88,7 +89,7 @@ void Material::setShader(CommandPool &commandPool, SwapChain &swapChain, std::st
 
     shader = std::make_unique<Shader>(logicalDevice.getDevice(), vertShader, fragShader);
 
-    graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice.getDevice(), swapChain, descriptorSetLayout, shader->vertShaderModule, shader->fragShaderModule);
+    graphicsPipeline = new GraphicsPipeline(logicalDevice.getDevice(), swapChain, descriptorSetLayout, shader->vertShaderModule, shader->fragShaderModule);
 
     vkDestroyShaderModule(logicalDevice.getDevice(), shader->vertShaderModule, nullptr);
     vkDestroyShaderModule(logicalDevice.getDevice(), shader->fragShaderModule, nullptr);

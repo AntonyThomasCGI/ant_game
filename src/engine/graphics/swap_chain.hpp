@@ -21,7 +21,7 @@ public:
 
     const VkSwapchainKHR &getSwapChain() const { return swapChain; }
 
-    const VkRenderPass &getRenderPass() const { return renderPass->getRenderPass(); }
+    const VkRenderPass getRenderPass() const { return renderPass->getRenderPass(); }
 
     const VkFramebuffer &getCurrentFramebuffer() const { return swapChainFramebuffers[imageIndex]; }
 
@@ -34,10 +34,10 @@ public:
     void createImageViews();
     void createFramebuffers();
 
-    std::unique_ptr<RenderPass> renderPass;
 
 private:
     VkSwapchainKHR swapChain;
+    std::unique_ptr<RenderPass> renderPass;
 
     uint32_t imageIndex = 0;
 

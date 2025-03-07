@@ -21,6 +21,7 @@ CommandPool::CommandPool(PhysicalDevice &physicalDevice, LogicalDevice &logicalD
 
 CommandPool::~CommandPool()
 {
+
     vkDestroyCommandPool(logicalDevice.getDevice(), commandPool, nullptr);
 }
 
