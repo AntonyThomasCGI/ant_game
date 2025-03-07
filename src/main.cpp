@@ -74,16 +74,16 @@ class App : public AppBase
 public:
     using AppBase::AppBase;
 
-    App(Window &window, Engine &engine) : AppBase(window, engine)
+    App(unsigned int width, unsigned int height) : AppBase(width, height)
     {
-        grid = new Grid(engine);
-        squareGuy = engine.graphics->addGameObject("z");
-        squareGuy1 = engine.graphics->addGameObject("z1");
+        //grid = new Grid(engine);
+        squareGuy = engine->graphics->addGameObject("z");
+        squareGuy1 = engine->graphics->addGameObject("z1");
     }
 
     ~App()
     {
-        delete grid;
+        //delete grid;
     }
 
     void update(float deltaTime) {
@@ -145,9 +145,7 @@ int main() {
     std::cout << "start" << std::endl;
 
     try {
-        Window window = Window(WIDTH, HEIGHT);
-        Engine engine = Engine(window);
-        App app = App(window, engine);
+        App app = App(WIDTH, HEIGHT);
         app.mainLoop();
     } catch (std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;

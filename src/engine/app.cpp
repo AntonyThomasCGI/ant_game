@@ -3,12 +3,21 @@
 
 #include "app.hpp"
 
-AppBase::AppBase(Window &window, Engine &engine) : window(window), engine(engine)
+AppBase::AppBase(unsigned int width, unsigned int height)
 {
+    window = new Window(width, height);
+    engine = new Engine(*window);
     connections += {
-        window.shouldClose.connect<&AppBase::exitApp>(this),
-        window.keyPressed.connect<&AppBase::_processInput>(this)
+        window->shouldClose.connect<&AppBase::exitApp>(this),
+        window->keyPressed.connect<&AppBase::_processInput>(this)
     };
+}
+
+
+AppBase::~AppBase()
+{
+    delete engine;
+    delete window;
 }
 
 
@@ -46,7 +55,7 @@ void AppBase::mainLoop()
 
         processInput(deltaTime);
         update(deltaTime);
-        window.update();
-        engine.update();
+        window->update();
+        engine->update();
     }
 }

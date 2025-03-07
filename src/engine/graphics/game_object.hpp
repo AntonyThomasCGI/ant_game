@@ -30,6 +30,6 @@ public:
     void draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame);
 
 private:
-    std::unique_ptr<Material> material;
+    Material *material;
     std::unique_ptr<Square> mesh;
 };

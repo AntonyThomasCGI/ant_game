@@ -33,12 +33,13 @@ Material::~Material()
 
 void Material::bind(CommandBuffer &commandBuffer, uint32_t currentFrame)
 {
+    std::cout << "bindPipeline" << std::endl;
+    vkCmdBindPipeline(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipeline());
+
     std::cout << "bindDescriptorSets" << std::endl;
     std::cout << currentFrame << std::endl;
     vkCmdBindDescriptorSets(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(), 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
-    std::cout << "bindPipeline" << std::endl;
-    vkCmdBindPipeline(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipeline());
 }
 
 

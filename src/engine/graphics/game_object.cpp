@@ -22,7 +22,7 @@
 
 GameObject::GameObject(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain)
 {
-    material = std::make_unique<Material>(logicalDevice);
+    material = new Material(logicalDevice);
     material->setTexturePath(physicalDevice, commandPool, texturePath);
     material->setShader(commandPool, swapChain, vertPath, fragPath);
 
@@ -33,7 +33,7 @@ GameObject::GameObject(PhysicalDevice &physicalDevice, LogicalDevice &logicalDev
 
 GameObject::~GameObject()
 {
-
+    delete material;
 }
 
 

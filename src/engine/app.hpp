@@ -7,7 +7,8 @@
 class AppBase
 {
 public:
-    AppBase(Window &window, Engine &engine);
+    AppBase(unsigned int width, unsigned int height);
+    ~AppBase();
 
     virtual void processInput(float deltaTime) = 0;
     virtual void update(float deltaTime) = 0;
@@ -19,9 +20,10 @@ public:
     bool keys[1024] = { false };
     bool keysProcessed[1024] = { false };
 
+    Window *window;
+    Engine *engine;
+
 private:
-    Window &window;
-    Engine &engine;
 
     void _processInput(int key, int scancode, int action, int mode);
 
