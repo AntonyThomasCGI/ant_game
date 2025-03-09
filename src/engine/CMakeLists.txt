@@ -44,6 +44,8 @@ add_library(${LIBRARY_NAME}
     graphics/texture.hpp
     renderers/sprite_renderer.cpp
     renderers/sprite_renderer.hpp
+    resources/resource_manager.cpp
+    resources/resource_manager.hpp
 )
 
 include_directories(

@@ -12,13 +12,13 @@
 
 VulkanGraphics::VulkanGraphics(Window &window) : window(window)
 {
-    instance = new Instance(window);
-    surface = new Surface(*instance, window);
-    physicalDevice = new PhysicalDevice(*instance, *surface);
+    instance = std::make_unique<Instance>(window);
+    surface = std::make_unique<Surface>(*instance, window);
+    physicalDevice = std::make_unique<PhysicalDevice>(*instance, *surface);
     physicalDevice->pickPhysicalDevice();
-    logicalDevice = new LogicalDevice(*instance, *surface, *physicalDevice);
-    swapChain = new SwapChain(*surface, *physicalDevice, *logicalDevice, window);
-    commandPool = new CommandPool(*physicalDevice, *logicalDevice, *surface);
+    logicalDevice = std::make_unique<LogicalDevice>(*instance, *surface, *physicalDevice);
+    swapChain = std::make_unique<SwapChain>(*surface, *physicalDevice, *logicalDevice, window);
+    commandPool = std::make_unique<CommandPool>(*physicalDevice, *logicalDevice, *surface);
 
     // hmm, maybe it's ok to use one set of cmd buffers / sync objects for every asset?
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -29,23 +29,15 @@ VulkanGraphics::VulkanGraphics(Window &window) : window(window)
     createSyncObjects();
 }
 
+
 VulkanGraphics::~VulkanGraphics()
 {
     vkDeviceWaitIdle(logicalDevice->getDevice());
-
-    delete swapChain;
 
     for (auto const& [name, gameObj] : gameObjects) {
         delete gameObj;
     }
     cleanupSyncObjects();
-
-    delete commandPool;
-    delete surface;
-
-    delete logicalDevice;
-    delete physicalDevice;
-    delete instance;
 }
 
 
@@ -54,7 +46,7 @@ GameObject* VulkanGraphics::addGameObject(std::string name)
     GameObject *gameObj = new GameObject(*physicalDevice, *logicalDevice, *commandPool, *swapChain);
     gameObjects[name] = gameObj;
 
-    return gameObjects[name];
+    return gameObj;
 }
 
 

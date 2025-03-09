@@ -7,7 +7,7 @@
 class AppBase
 {
 public:
-    AppBase(unsigned int width, unsigned int height);
+    AppBase(unsigned int width, unsigned int height, int argc, char **argv);
     ~AppBase();
 
     virtual void processInput(float deltaTime) = 0;

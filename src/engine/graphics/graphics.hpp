@@ -23,7 +23,6 @@
 class VulkanGraphics {
 
 public:
-    // TODO, graphics engine shouldn't require a window but oh well.
     VulkanGraphics(Window &window);
     ~VulkanGraphics();
 
@@ -33,20 +32,13 @@ public:
 
 private:
     Window &window;
-    //std::unique_ptr<Instance> instance;
-    //std::unique_ptr<Surface> surface;
-    //std::unique_ptr<PhysicalDevice> physicalDevice;
-    //std::unique_ptr<LogicalDevice> logicalDevice;
-    //std::unique_ptr<SwapChain> swapChain;
-    //std::unique_ptr<CommandPool> commandPool;
-    //std::unique_ptr<Material> material;
-    Instance *instance;
-    Surface *surface;
-    PhysicalDevice *physicalDevice;
-    LogicalDevice *logicalDevice;
-    SwapChain *swapChain;
-    CommandPool *commandPool;
-    Material *material;
+    std::unique_ptr<Instance> instance;
+    std::unique_ptr<Surface> surface;
+    std::unique_ptr<PhysicalDevice> physicalDevice;
+    std::unique_ptr<LogicalDevice> logicalDevice;
+    std::unique_ptr<SwapChain> swapChain;
+    std::unique_ptr<CommandPool> commandPool;
+    std::unique_ptr<Material> material;
 
     std::map<std::string, GameObject*> gameObjects;
 

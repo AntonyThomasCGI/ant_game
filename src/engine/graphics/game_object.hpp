@@ -21,6 +21,7 @@ public:
     ~GameObject();
 
     void move(glm::vec2 trans, float rot);
+    void setSpritePath(std::string texturePath);
 
     glm::vec2 translate = glm::vec2(0.0f, 0.0f);
     float rotate = 0.0f;
@@ -30,6 +31,10 @@ public:
     void draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame);
 
 private:
+
+    PhysicalDevice &physicalDevice;
+    CommandPool &commandPool;
+
     Material *material;
     std::unique_ptr<Square> mesh;
 };

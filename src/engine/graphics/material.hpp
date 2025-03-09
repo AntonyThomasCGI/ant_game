@@ -21,6 +21,10 @@ public:
 
     void updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain);
 
+    void cleanupDescriptorPool();
+    void createDescriptorSets();
+    void createDescriptorPool();
+
 private:
     LogicalDevice &logicalDevice;
 
@@ -33,11 +37,9 @@ private:
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
 
-    VkDescriptorPool descriptorPool;
+    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    void createDescriptorSets(TextureImage &textureImage);
-    void createDescriptorPool();
     void createUniformBuffers(CommandPool &commandPool);
     void createDescriptorSetLayout();
 };

@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <memory>
 #include <sstream>
 
 #include <glm/glm.hpp>
@@ -8,6 +9,7 @@
 
 #include "engine/app.hpp"
 #include "engine/engine.hpp"
+
 
 
 const unsigned int WIDTH = 800;
@@ -23,7 +25,7 @@ public:
 
     const float tileWidth = 40.0;
 
-    Grid(Engine &engine) {
+    Grid(Engine *engine) {
 
         float halfWidth = (WIDTH - tileWidth) / 2.0f;
         float halfHeight = (HEIGHT - tileWidth) / 2.0f;
@@ -34,7 +36,7 @@ public:
             for (int j = 0; j < GRID_WIDTH; j++ ) {
                 std::stringstream s;
                 s << "tile_" << std::to_string(i) << "_" << std::to_string(j);
-                grid[i][j] = engine.graphics->addGameObject(s.str());
+                grid[i][j] = engine->graphics->addGameObject(s.str());
 
                 float yPos = i * tileWidth - halfHeight;
                 float xPos = j * tileWidth - halfWidth;
@@ -74,20 +76,22 @@ class App : public AppBase
 public:
     using AppBase::AppBase;
 
-    App(unsigned int width, unsigned int height) : AppBase(width, height)
+    App(unsigned int width, unsigned int height, int argc, char **argv) : AppBase(width, height, argc, argv)
     {
-        //grid = new Grid(engine);
-        squareGuy = engine->graphics->addGameObject("z");
-        squareGuy1 = engine->graphics->addGameObject("z1");
+        //grid = std::make_unique<Grid>(engine);
+        ant1 = engine->graphics->addGameObject("z");
+        ant2 = engine->graphics->addGameObject("z1");
+
+        ant1->setSpritePath("resources/textures/ant1.png");
+        ant2->setSpritePath("resources/textures/ant2.png");
     }
 
     ~App()
     {
-        //delete grid;
     }
 
     void update(float deltaTime) {
-        squareGuy1->move(glm::vec2(0.0f), 200.0f * deltaTime);
+        ant2->move(glm::vec2(0.0f), 200.0f * deltaTime);
 
     }
 
@@ -102,13 +106,13 @@ public:
 
         if (keys[GLFW_KEY_W] && !keysProcessed[GLFW_KEY_W])
         {
-            moveX += -velocity * cos(glm::radians(90.0 - squareGuy->rotate));
-            moveY += velocity * sin(glm::radians(90.0 - squareGuy->rotate));
+            moveX += -velocity * cos(glm::radians(90.0 - ant1->rotate));
+            moveY += velocity * sin(glm::radians(90.0 - ant1->rotate));
         }
         if (keys[GLFW_KEY_S] && !keysProcessed[GLFW_KEY_S])
         {
-            moveX += velocity * cos(glm::radians(90.0 - squareGuy->rotate));
-            moveY += -velocity * sin(glm::radians(90.0 - squareGuy->rotate));
+            moveX += velocity * cos(glm::radians(90.0 - ant1->rotate));
+            moveY += -velocity * sin(glm::radians(90.0 - ant1->rotate));
         }
         if (keys[GLFW_KEY_A] && !keysProcessed[GLFW_KEY_A])
         {
@@ -120,12 +124,12 @@ public:
         }
         // Move the square.
         if (moveX != 0 | moveY != 0 | rotate != 0) {
-            squareGuy->move(glm::vec2(moveX, moveY), rotate);
+            ant1->move(glm::vec2(moveX, moveY), rotate);
         }
 
         if (keys[GLFW_KEY_E] && !keysProcessed[GLFW_KEY_E]) {
             glm::vec3 newColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
-            squareGuy->color = newColor;
+            ant1->color = newColor;
             keysProcessed[GLFW_KEY_E] = true;
         }
 
@@ -135,15 +139,15 @@ public:
     }
 
 private:
-    GameObject* squareGuy;
-    GameObject* squareGuy1;
-    Grid *grid;
+    GameObject* ant1;
+    GameObject* ant2;
+    std::unique_ptr<Grid> grid;
 };
 
 
-int main() {
+int main(int argc, char** argv) {
     try {
-        App app = App(WIDTH, HEIGHT);
+        App app = App(WIDTH, HEIGHT, argc, argv);
         app.mainLoop();
     } catch (std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;

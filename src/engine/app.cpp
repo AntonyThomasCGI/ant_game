@@ -3,7 +3,7 @@
 
 #include "app.hpp"
 
-AppBase::AppBase(unsigned int width, unsigned int height)
+AppBase::AppBase(unsigned int width, unsigned int height, int argc, char **argv)
 {
     window = new Window(width, height);
     engine = new Engine(*window);

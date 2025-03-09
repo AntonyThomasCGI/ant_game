@@ -2,6 +2,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <vulkan/vk_enum_string_helper.h>
+
 #include <array>
 
 #include "material.hpp"
@@ -32,6 +34,12 @@ Material::~Material()
     }
     vkDestroyDescriptorPool(logicalDevice.getDevice(), descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(logicalDevice.getDevice(), descriptorSetLayout, nullptr);
+}
+
+
+void Material::cleanupDescriptorPool()
+{
+    vkDestroyDescriptorPool(logicalDevice.getDevice(), descriptorPool, nullptr);
 }
 
 
@@ -96,7 +104,7 @@ void Material::setShader(CommandPool &commandPool, SwapChain &swapChain, std::st
 
     createUniformBuffers(commandPool);
     createDescriptorPool();
-    createDescriptorSets(*textureImage.get());
+    createDescriptorSets();
 }
 
 
@@ -133,6 +141,11 @@ void Material::createDescriptorSetLayout()
 
 void Material::createDescriptorPool()
 {
+    //if (descriptorPool != VK_NULL_HANDLE) {
+
+    //    vkDestroyDescriptorPool(logicalDevice.getDevice(), descriptorPool, nullptr);
+    //};
+
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
@@ -153,7 +166,7 @@ void Material::createDescriptorPool()
 }
 
 
-void Material::createDescriptorSets(TextureImage &textureImage)
+void Material::createDescriptorSets()
 {
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
@@ -163,7 +176,9 @@ void Material::createDescriptorSets(TextureImage &textureImage)
     allocInfo.pSetLayouts = layouts.data();
 
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-    if (vkAllocateDescriptorSets(logicalDevice.getDevice(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+    VkResult result = vkAllocateDescriptorSets(logicalDevice.getDevice(), &allocInfo, descriptorSets.data());
+    if (result != VK_SUCCESS) {
+        std::cout << "Got result: " << string_VkResult(result) << std::endl;;
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
 
@@ -175,8 +190,8 @@ void Material::createDescriptorSets(TextureImage &textureImage)
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = textureImage.getTextureImageView();
-        imageInfo.sampler = textureImage.getTextureSampler();
+        imageInfo.imageView = textureImage->getTextureImageView();
+        imageInfo.sampler = textureImage->getTextureSampler();
 
         std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
         descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

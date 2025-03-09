@@ -6,24 +6,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-//TODO, resource manager
-# ifdef /* bad */ __APPLE__
-    const std::string vertPath = "/Users/antony/dev/vulkan_grid/shaders/flat_vert.spv";
-    const std::string fragPath = "/Users/antony/dev/vulkan_grid/shaders/flat_frag.spv";
-    const std::string texturePath = "/Users/antony/dev/vulkan_grid/textures/ant.png";
-# else
-    const std::string vertPath = "C:\\Users\\GGPC\\dev\\vulkan_grid\\shaders\\flat_vert.spv";
-    const std::string fragPath = "C:\\Users\\GGPC\\dev\\vulkan_grid\\shaders\\flat_frag.spv";
-    const std::string texturePath = "C:\\Users\\GGPC\\dev\\vulkan_grid\\textures\\ant.png";
-# endif
-
-
+const std::string vertPath = "resources/shaders/flat_vert.spv";
+const std::string fragPath = "resources/shaders/flat_frag.spv";
+const std::string defaultSprite = "resources/textures/ant1.png";
 
 
 GameObject::GameObject(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain)
+    : physicalDevice(physicalDevice), commandPool(commandPool)
 {
     material = new Material(logicalDevice);
-    material->setTexturePath(physicalDevice, commandPool, texturePath);
+    material->setTexturePath(physicalDevice, commandPool, defaultSprite);
     material->setShader(commandPool, swapChain, vertPath, fragPath);
 
     mesh = std::make_unique<Square>(&logicalDevice);
@@ -34,6 +26,17 @@ GameObject::GameObject(PhysicalDevice &physicalDevice, LogicalDevice &logicalDev
 GameObject::~GameObject()
 {
     delete material;
+}
+
+
+void GameObject::setSpritePath(std::string texturePath)
+{
+    // TODO
+    material->cleanupDescriptorPool();
+    material->setTexturePath(physicalDevice, commandPool, texturePath);
+    material->createDescriptorPool();
+    material->createDescriptorSets();
+
 }
 
 
