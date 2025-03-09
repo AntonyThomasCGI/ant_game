@@ -37,6 +37,7 @@ public:
                 std::stringstream s;
                 s << "tile_" << std::to_string(i) << "_" << std::to_string(j);
                 grid[i][j] = engine->graphics->addGameObject(s.str());
+                grid[i][j]->setSpritePath("resources/textures/dirt.png");
 
                 float yPos = i * tileWidth - halfHeight;
                 float xPos = j * tileWidth - halfWidth;
@@ -78,7 +79,7 @@ public:
 
     App(unsigned int width, unsigned int height, int argc, char **argv) : AppBase(width, height, argc, argv)
     {
-        //grid = std::make_unique<Grid>(engine);
+        grid = std::make_unique<Grid>(engine);
         ant1 = engine->graphics->addGameObject("z");
         ant2 = engine->graphics->addGameObject("z1");
 
