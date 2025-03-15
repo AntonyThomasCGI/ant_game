@@ -18,7 +18,7 @@ VulkanGraphics::VulkanGraphics(Window &window) : window(window)
     physicalDevice->pickPhysicalDevice();
     logicalDevice = std::make_unique<LogicalDevice>(*instance, *surface, *physicalDevice);
     swapChain = std::make_unique<SwapChain>(*surface, *physicalDevice, *logicalDevice, window);
-    commandPool = std::make_unique<CommandPool>(*physicalDevice, *logicalDevice, *surface);
+    commandPool = std::make_unique<CommandPool>(*instance, *physicalDevice, *logicalDevice, *surface);
 
     // hmm, maybe it's ok to use one set of cmd buffers / sync objects for every asset?
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);

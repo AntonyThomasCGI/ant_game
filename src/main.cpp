@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <memory>
+#include <random>
 #include <sstream>
 
 #include <glm/glm.hpp>
@@ -15,15 +16,15 @@
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
 
-const unsigned int GRID_WIDTH = WIDTH / 40;
-const unsigned int GRID_HEIGHT = HEIGHT / 40;
+const unsigned int GRID_WIDTH = WIDTH / 100;
+const unsigned int GRID_HEIGHT = HEIGHT / 100;
 
 
 class Grid
 {
 public:
 
-    const float tileWidth = 40.0;
+    const float tileWidth = 100.0;
 
     Grid(Engine *engine) {
 
@@ -31,6 +32,10 @@ public:
         float halfHeight = (HEIGHT - tileWidth) / 2.0f;
 
         std::cout << "Building grid (" << GRID_WIDTH << ", " << GRID_HEIGHT << ")" << std::endl;
+
+        std::random_device dev;
+        std::mt19937 rng(dev());
+        std::uniform_int_distribution<std::mt19937::result_type> dist10(1,15);
 
         for (int i = 0; i < GRID_HEIGHT; i++ ) {
             for (int j = 0; j < GRID_WIDTH; j++ ) {
@@ -45,23 +50,11 @@ public:
                 grid[i][j]->translate = glm::vec2(xPos, yPos);
                 grid[i][j]->scale = glm::vec2(tileWidth);
 
-
-                glm::vec3 randColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
-                grid[i][j]->color = randColor;
-            }
-        }
-    }
-
-    void update() {
-        for (int i = 0; i < GRID_HEIGHT; i++ ) {
-            for (int j = 0; j < GRID_WIDTH; j++ ) {
-                glm::vec3 currentColor = grid[i][j]->color;
-
-                glm::vec3 offset = glm::vec3(glm::linearRand(-0.05f, 0.05f), glm::linearRand(-0.05f, 0.05f), glm::linearRand(-0.05f, 0.05f));
-
-                glm::vec3 result = glm::clamp(currentColor + offset, 0.0f, 1.0f);
-
-                grid[i][j]->color = result;
+                // Sometimes, set a grid tile a random color.
+                if (dist10(rng) > 14) {
+                    glm::vec3 randColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
+                    grid[i][j]->color = randColor;
+                }
             }
         }
     }
@@ -132,10 +125,6 @@ public:
             glm::vec3 newColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
             ant1->color = newColor;
             keysProcessed[GLFW_KEY_E] = true;
-        }
-
-        if (keys[GLFW_KEY_Q] && !keysProcessed[GLFW_KEY_Q]) {
-            grid->update();
         }
     }
 

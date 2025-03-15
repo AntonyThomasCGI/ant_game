@@ -3,6 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "vk_mem_alloc.h"
+
 #include "logical_device.hpp"
 #include "surface.hpp"
 
@@ -10,7 +12,7 @@
 class CommandPool
 {
 public:
-    CommandPool(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, Surface &surface);
+    CommandPool(Instance &instance, PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, Surface &surface);
     ~CommandPool();
 
     VkCommandPool const getCommandPool() const { return commandPool; }
@@ -19,9 +21,13 @@ public:
     void endSingleTimeCommands(VkCommandBuffer commandBuffer);
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void createBuffer2(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VmaAllocation& allocation);
+
+    VmaAllocator allocator;
 
 private:
     VkCommandPool commandPool;
+
 
     LogicalDevice &logicalDevice;
 };

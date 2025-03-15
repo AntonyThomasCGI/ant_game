@@ -18,10 +18,9 @@ struct UniformBufferObject {
 };
 
 
-Material::Material(LogicalDevice &logicalDevice) : logicalDevice(logicalDevice)
-{
-
-}
+Material::Material(LogicalDevice &logicalDevice, CommandPool &commandPool)
+    : logicalDevice(logicalDevice), commandPool(commandPool)
+{ }
 
 
 Material::~Material()
@@ -29,8 +28,10 @@ Material::~Material()
     delete graphicsPipeline;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyBuffer(logicalDevice.getDevice(), uniformBuffers[i], nullptr);
-        vkFreeMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], nullptr);
+        vmaUnmapMemory(commandPool.allocator, uniformBuffersMemory[i]);
+        vmaDestroyBuffer(commandPool.allocator, uniformBuffers[i], uniformBuffersMemory[i]);
+        //vkDestroyBuffer(logicalDevice.getDevice(), uniformBuffers[i], nullptr);
+        //vkFreeMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], nullptr);
     }
     vkDestroyDescriptorPool(logicalDevice.getDevice(), descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(logicalDevice.getDevice(), descriptorSetLayout, nullptr);
@@ -48,7 +49,6 @@ void Material::bind(CommandBuffer &commandBuffer, uint32_t currentFrame)
     vkCmdBindPipeline(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipeline());
 
     vkCmdBindDescriptorSets(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(), 0, 1, &descriptorSets[currentFrame], 0, nullptr);
-
 }
 
 
@@ -90,7 +90,7 @@ void Material::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_
 }
 
 
-void Material::setShader(CommandPool &commandPool, SwapChain &swapChain, std::string vertShader, std::string fragShader)
+void Material::setShader(SwapChain &swapChain, std::string vertShader, std::string fragShader)
 {
 
     createDescriptorSetLayout();
@@ -102,7 +102,7 @@ void Material::setShader(CommandPool &commandPool, SwapChain &swapChain, std::st
     vkDestroyShaderModule(logicalDevice.getDevice(), shader->vertShaderModule, nullptr);
     vkDestroyShaderModule(logicalDevice.getDevice(), shader->fragShaderModule, nullptr);
 
-    createUniformBuffers(commandPool);
+    createUniformBuffers();
     createDescriptorPool();
     createDescriptorSets();
 }
@@ -215,7 +215,7 @@ void Material::createDescriptorSets()
 }
 
 
-void Material::createUniformBuffers(CommandPool &commandPool)
+void Material::createUniformBuffers()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -224,15 +224,18 @@ void Material::createUniformBuffers(CommandPool &commandPool)
     uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+        commandPool.createBuffer2(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+        //commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
 
-        vkMapMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+        //vkMapMemory(logicalDevice.getDevice(), uniformBuffersMemory[i].deviceMemory, uniformBuffersMemory[i].offset, bufferSize, 0, &uniformBuffersMapped[i]);
+        vmaMapMemory(commandPool.allocator, uniformBuffersMemory[i], &uniformBuffersMapped[i]);
+        //memcpy(uniformBuffersMapped[i], &uniformBuffers[i], bufferSize);
     }
 
 }
 
 
-void Material::setTexturePath(PhysicalDevice &physicalDevice, CommandPool &commandPool, std::string texturePath)
+void Material::setTexturePath(PhysicalDevice &physicalDevice, std::string texturePath)
 {
     textureImage = std::make_unique<TextureImage>(physicalDevice, logicalDevice, commandPool, texturePath);
 }
