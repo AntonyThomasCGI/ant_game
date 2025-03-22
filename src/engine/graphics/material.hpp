@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include "vk_mem_alloc.h"
-
 #include "command_buffer.hpp"
 #include "command_pool.hpp"
 #include "logical_device.hpp"
@@ -38,7 +36,7 @@ private:
 
     VkDescriptorSetLayout descriptorSetLayout;
     std::vector<VkBuffer> uniformBuffers;
-    std::vector<VmaAllocation> uniformBuffersMemory;
+    std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
 
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;

@@ -4,9 +4,12 @@
 #include <random>
 #include <sstream>
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/random.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "engine/app.hpp"
 #include "engine/engine.hpp"
@@ -16,15 +19,15 @@
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
 
-const unsigned int GRID_WIDTH = WIDTH / 100;
-const unsigned int GRID_HEIGHT = HEIGHT / 100;
+const unsigned int GRID_WIDTH = WIDTH / 40;
+const unsigned int GRID_HEIGHT = HEIGHT / 40;
 
 
 class Grid
 {
 public:
 
-    const float tileWidth = 100.0;
+    const float tileWidth = 40.0;
 
     Grid(Engine *engine) {
 
@@ -51,12 +54,22 @@ public:
                 grid[i][j]->scale = glm::vec2(tileWidth);
 
                 // Sometimes, set a grid tile a random color.
-                if (dist10(rng) > 14) {
-                    glm::vec3 randColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
-                    grid[i][j]->color = randColor;
-                }
+                //if (dist10(rng) > 14) {
+                //    glm::vec3 randColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
+                //    grid[i][j]->color = randColor;
+                //}
             }
         }
+    }
+
+    GameObject* gameObjectAt(float worldY, float worldX) {
+        float halfWidth = (WIDTH - tileWidth) / 2.0f;
+        float halfHeight = (HEIGHT - tileWidth) / 2.0f;
+
+        int scaledY = (worldY + halfHeight) / tileWidth;
+        int scaledX = (worldX + halfWidth) / tileWidth;
+
+        return grid[scaledY][scaledX];
     }
 
 private:
@@ -86,7 +99,11 @@ public:
 
     void update(float deltaTime) {
         ant2->move(glm::vec2(0.0f), 200.0f * deltaTime);
+        //std::cout << glm::to_string(ant1->translate) << std::endl;
+        GameObject* square = grid->gameObjectAt(ant1->translate.y, ant1->translate.x);
 
+        glm::vec3 randColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
+        square->color = randColor;
     }
 
     void processInput(float deltaTime) {

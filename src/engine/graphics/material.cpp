@@ -28,10 +28,8 @@ Material::~Material()
     delete graphicsPipeline;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vmaUnmapMemory(commandPool.allocator, uniformBuffersMemory[i]);
-        vmaDestroyBuffer(commandPool.allocator, uniformBuffers[i], uniformBuffersMemory[i]);
-        //vkDestroyBuffer(logicalDevice.getDevice(), uniformBuffers[i], nullptr);
-        //vkFreeMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], nullptr);
+        vkDestroyBuffer(logicalDevice.getDevice(), uniformBuffers[i], nullptr);
+        vkFreeMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], nullptr);
     }
     vkDestroyDescriptorPool(logicalDevice.getDevice(), descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(logicalDevice.getDevice(), descriptorSetLayout, nullptr);
@@ -224,14 +222,14 @@ void Material::createUniformBuffers()
     uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        commandPool.createBuffer2(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
-        //commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+        //commandPool.createBuffer2(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+        commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
 
+        vkMapMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
         //vkMapMemory(logicalDevice.getDevice(), uniformBuffersMemory[i].deviceMemory, uniformBuffersMemory[i].offset, bufferSize, 0, &uniformBuffersMapped[i]);
-        vmaMapMemory(commandPool.allocator, uniformBuffersMemory[i], &uniformBuffersMapped[i]);
+        //vmaMapMemory(commandPool.allocator, uniformBuffersMemory[i], &uniformBuffersMapped[i]);
         //memcpy(uniformBuffersMapped[i], &uniformBuffers[i], bufferSize);
     }
-
 }
 
 
