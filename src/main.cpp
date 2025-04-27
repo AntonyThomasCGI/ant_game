@@ -19,6 +19,11 @@
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
 
+<<<<<<< HEAD
+=======
+//const unsigned int GRID_WIDTH = WIDTH / 100;
+//const unsigned int GRID_HEIGHT = HEIGHT / 100;
+>>>>>>> 823d13e (apply random grid colors to and path)
 const unsigned int GRID_WIDTH = WIDTH / 40;
 const unsigned int GRID_HEIGHT = HEIGHT / 40;
 
@@ -102,6 +107,12 @@ public:
         //std::cout << glm::to_string(ant1->translate) << std::endl;
         GameObject* square = grid->gameObjectAt(ant1->translate.y, ant1->translate.x);
 
+<<<<<<< HEAD
+=======
+        //std::cout << glm::to_string(ant1->translate) << std::endl;
+        GameObject* square = grid->gameObjectAt(ant1->translate.y, ant1->translate.x);
+
+>>>>>>> 823d13e (apply random grid colors to and path)
         glm::vec3 randColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
         square->color = randColor;
     }
