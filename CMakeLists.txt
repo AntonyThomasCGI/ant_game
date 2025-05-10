@@ -12,6 +12,7 @@ add_subdirectory(external/rocket)
 add_subdirectory(external/glm)
 
 include_directories(
+    external/VulkanmemoryAllocator/include
     external/glfw/include
     external/glm
     external/rocket

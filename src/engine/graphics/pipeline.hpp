@@ -9,7 +9,7 @@
 
 class GraphicsPipeline
 {
-public: GraphicsPipeline(VkDevice &device, SwapChain &swapChain, VkDescriptorSetLayout &descriptorSet, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule);
+public: GraphicsPipeline(LogicalDevice &logicalDevice, SwapChain &swapChain, VkDescriptorSetLayout &descriptorSet, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule);
     ~GraphicsPipeline();
 
     VkPipeline getGraphicsPipeline() const { return graphicsPipeline; };
@@ -19,7 +19,7 @@ public: GraphicsPipeline(VkDevice &device, SwapChain &swapChain, VkDescriptorSet
 private:
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;
-    VkDevice device;
+    LogicalDevice &logicalDevice;
 
     void createGraphicsPipeline(SwapChain &swapChain, VkDescriptorSetLayout &descriptorSet, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule);
 };

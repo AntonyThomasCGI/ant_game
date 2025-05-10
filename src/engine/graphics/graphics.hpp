@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+#include <vk_mem_alloc.h>
+
 #include "command_buffer.hpp"
 #include "command_pool.hpp"
 #include "devices/window.hpp"
@@ -32,6 +34,9 @@ public:
 
 private:
     Window &window;
+
+    VmaAllocator allocator;
+
     std::unique_ptr<Instance> instance;
     std::unique_ptr<Surface> surface;
     std::unique_ptr<PhysicalDevice> physicalDevice;

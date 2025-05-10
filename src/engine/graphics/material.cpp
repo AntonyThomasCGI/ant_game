@@ -28,8 +28,10 @@ Material::~Material()
     delete graphicsPipeline;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyBuffer(logicalDevice.getDevice(), uniformBuffers[i], nullptr);
-        vkFreeMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], nullptr);
+        //vkDestroyBuffer(logicalDevice.getDevice(), uniformBuffers[i], nullptr);
+        //vkFreeMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], nullptr);
+        vmaUnmapMemory(commandPool.allocator, uniformBuffersMemory[i]);
+        vmaDestroyBuffer(commandPool.allocator, uniformBuffers[i], uniformBuffersMemory[i]);
     }
     vkDestroyDescriptorPool(logicalDevice.getDevice(), descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(logicalDevice.getDevice(), descriptorSetLayout, nullptr);
@@ -93,9 +95,9 @@ void Material::setShader(SwapChain &swapChain, std::string vertShader, std::stri
 
     createDescriptorSetLayout();
 
-    shader = std::make_unique<Shader>(logicalDevice.getDevice(), vertShader, fragShader);
+    shader = std::make_unique<Shader>(logicalDevice, vertShader, fragShader);
 
-    graphicsPipeline = new GraphicsPipeline(logicalDevice.getDevice(), swapChain, descriptorSetLayout, shader->vertShaderModule, shader->fragShaderModule);
+    graphicsPipeline = new GraphicsPipeline(logicalDevice, swapChain, descriptorSetLayout, shader->vertShaderModule, shader->fragShaderModule);
 
     vkDestroyShaderModule(logicalDevice.getDevice(), shader->vertShaderModule, nullptr);
     vkDestroyShaderModule(logicalDevice.getDevice(), shader->fragShaderModule, nullptr);
@@ -222,12 +224,12 @@ void Material::createUniformBuffers()
     uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        //commandPool.createBuffer2(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
-        commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+        commandPool.createBuffer2(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+        //commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
 
-        vkMapMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+        vmaMapMemory(commandPool.allocator, uniformBuffersMemory[i], &uniformBuffersMapped[i]);
+        //vkMapMemory(logicalDevice.getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
         //vkMapMemory(logicalDevice.getDevice(), uniformBuffersMemory[i].deviceMemory, uniformBuffersMemory[i].offset, bufferSize, 0, &uniformBuffersMapped[i]);
-        //vmaMapMemory(commandPool.allocator, uniformBuffersMemory[i], &uniformBuffersMapped[i]);
         //memcpy(uniformBuffersMapped[i], &uniformBuffers[i], bufferSize);
     }
 }

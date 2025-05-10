@@ -5,7 +5,8 @@
 #include "command_pool.hpp"
 
 
-CommandPool::CommandPool(Instance &instance, PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, Surface &surface) : logicalDevice(logicalDevice)
+CommandPool::CommandPool(VmaAllocator &allocator, PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, Surface &surface)
+    : logicalDevice(logicalDevice), allocator(allocator)
 {
     QueueFamilyIndices queueFamilyIndices = surface.findQueueFamilies(physicalDevice.getPhysicalDevice());
 
@@ -17,20 +18,6 @@ CommandPool::CommandPool(Instance &instance, PhysicalDevice &physicalDevice, Log
     if (vkCreateCommandPool(logicalDevice.getDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create command pool!");
     }
-
-    //VmaVulkanFunctions vulkanFunctions = {};
-    //vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
-    //vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
-
-    //VmaAllocatorCreateInfo allocatorCreateInfo = {};
-    //allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
-    //allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
-    //allocatorCreateInfo.physicalDevice = physicalDevice.getPhysicalDevice();
-    //allocatorCreateInfo.device = logicalDevice.getDevice();
-    //allocatorCreateInfo.instance = instance.getInstance();
-    //allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
-
-    //vmaCreateAllocator(&allocatorCreateInfo, &allocator);
 }
 
 
@@ -90,23 +77,23 @@ void CommandPool::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSiz
 }
 
 
-//void CommandPool::createBuffer2(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VmaAllocation& allocation) {
-//    VkBufferCreateInfo bufferInfo{};
-//    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-//    bufferInfo.size = size;
-//    bufferInfo.usage = usage;
-//    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-//
-//    VmaAllocationCreateInfo vmaAllocInfo = {};
-//    vmaAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
-//
-//    // TODO, pretty sure this is hard coded to one type of buffer creation
-//    vmaAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
-//        VMA_ALLOCATION_CREATE_MAPPED_BIT;
-//
-//
-//    vmaCreateBuffer(allocator, &bufferInfo, &vmaAllocInfo, &buffer, &allocation, nullptr);
-//}
+void CommandPool::createBuffer2(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VmaAllocation& allocation) {
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    VmaAllocationCreateInfo vmaAllocInfo = {};
+    vmaAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+
+    // TODO, pretty sure this is hard coded to one type of buffer creation
+    vmaAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+        VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+
+    vmaCreateBuffer(allocator, &bufferInfo, &vmaAllocInfo, &buffer, &allocation, nullptr);
+}
 
 
 void CommandPool::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {

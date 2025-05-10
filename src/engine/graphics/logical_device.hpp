@@ -14,7 +14,7 @@ public:
     LogicalDevice(Instance &instance, Surface &surface, PhysicalDevice &physicalDevice);
     ~LogicalDevice();
 
-    VkDevice &getDevice() { return device; }
+    const VkDevice &getDevice() const { return device; }
     VkQueue &getGraphicsQueue() { return graphicsQueue; }
     VkQueue &getPresentQueue() { return presentQueue; }
     PhysicalDevice &getPhysicalDevice() { return physicalDevice; }
