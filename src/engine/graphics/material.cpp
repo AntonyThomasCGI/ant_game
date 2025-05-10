@@ -18,8 +18,8 @@ struct UniformBufferObject {
 };
 
 
-Material::Material(Device &device, CommandPool &commandPool)
-    : device(device), commandPool(commandPool)
+Material::Material(GraphicsContext &ctx, CommandPool &commandPool)
+    : ctx(ctx), commandPool(commandPool)
 { }
 
 
@@ -30,17 +30,17 @@ Material::~Material()
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         //vkDestroyBuffer(device.getDevice(), uniformBuffers[i], nullptr);
         //vkFreeMemory(device.getDevice(), uniformBuffersMemory[i], nullptr);
-        vmaUnmapMemory(commandPool.allocator, uniformBuffersMemory[i]);
-        vmaDestroyBuffer(commandPool.allocator, uniformBuffers[i], uniformBuffersMemory[i]);
+        vmaUnmapMemory(ctx.allocator, uniformBuffersMemory[i]);
+        vmaDestroyBuffer(ctx.allocator, uniformBuffers[i], uniformBuffersMemory[i]);
     }
-    vkDestroyDescriptorPool(device.getDevice(), descriptorPool, nullptr);
-    vkDestroyDescriptorSetLayout(device.getDevice(), descriptorSetLayout, nullptr);
+    vkDestroyDescriptorPool(ctx.device->getDevice(), descriptorPool, nullptr);
+    vkDestroyDescriptorSetLayout(ctx.device->getDevice(), descriptorSetLayout, nullptr);
 }
 
 
 void Material::cleanupDescriptorPool()
 {
-    vkDestroyDescriptorPool(device.getDevice(), descriptorPool, nullptr);
+    vkDestroyDescriptorPool(ctx.device->getDevice(), descriptorPool, nullptr);
 }
 
 
@@ -95,12 +95,12 @@ void Material::setShader(SwapChain &swapChain, std::string vertShader, std::stri
 
     createDescriptorSetLayout();
 
-    shader = std::make_unique<Shader>(device, vertShader, fragShader);
+    shader = std::make_unique<Shader>(*ctx.device, vertShader, fragShader);
 
-    graphicsPipeline = new GraphicsPipeline(device, swapChain, descriptorSetLayout, shader->vertShaderModule, shader->fragShaderModule);
+    graphicsPipeline = new GraphicsPipeline(*ctx.device, swapChain, descriptorSetLayout, shader->vertShaderModule, shader->fragShaderModule);
 
-    vkDestroyShaderModule(device.getDevice(), shader->vertShaderModule, nullptr);
-    vkDestroyShaderModule(device.getDevice(), shader->fragShaderModule, nullptr);
+    vkDestroyShaderModule(ctx.device->getDevice(), shader->vertShaderModule, nullptr);
+    vkDestroyShaderModule(ctx.device->getDevice(), shader->fragShaderModule, nullptr);
 
     createUniformBuffers();
     createDescriptorPool();
@@ -133,7 +133,7 @@ void Material::createDescriptorSetLayout()
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     layoutInfo.pBindings = bindings.data();
 
-    if (vkCreateDescriptorSetLayout(device.getDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+    if (vkCreateDescriptorSetLayout(ctx.device->getDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor set layout!");
     }
 }
@@ -160,7 +160,7 @@ void Material::createDescriptorPool()
 
     poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-    if (vkCreateDescriptorPool(device.getDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+    if (vkCreateDescriptorPool(ctx.device->getDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
     }
 }
@@ -176,7 +176,7 @@ void Material::createDescriptorSets()
     allocInfo.pSetLayouts = layouts.data();
 
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-    VkResult result = vkAllocateDescriptorSets(device.getDevice(), &allocInfo, descriptorSets.data());
+    VkResult result = vkAllocateDescriptorSets(ctx.device->getDevice(), &allocInfo, descriptorSets.data());
     if (result != VK_SUCCESS) {
         std::cout << "Got result: " << string_VkResult(result) << std::endl;;
         throw std::runtime_error("failed to allocate descriptor sets!");
@@ -210,7 +210,7 @@ void Material::createDescriptorSets()
         descriptorWrites[1].descriptorCount = 1;
         descriptorWrites[1].pImageInfo = &imageInfo;
 
-        vkUpdateDescriptorSets(device.getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+        vkUpdateDescriptorSets(ctx.device->getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
 }
 
@@ -227,7 +227,7 @@ void Material::createUniformBuffers()
         commandPool.createBuffer2(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
         //commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
 
-        vmaMapMemory(commandPool.allocator, uniformBuffersMemory[i], &uniformBuffersMapped[i]);
+        vmaMapMemory(ctx.allocator, uniformBuffersMemory[i], &uniformBuffersMapped[i]);
         //vkMapMemory(device.getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
         //vkMapMemory(device.getDevice(), uniformBuffersMemory[i].deviceMemory, uniformBuffersMemory[i].offset, bufferSize, 0, &uniformBuffersMapped[i]);
         //memcpy(uniformBuffersMapped[i], &uniformBuffers[i], bufferSize);
@@ -237,5 +237,5 @@ void Material::createUniformBuffers()
 
 void Material::setTexturePath(PhysicalDevice &physicalDevice, std::string texturePath)
 {
-    textureImage = std::make_unique<TextureImage>(physicalDevice, device, commandPool, texturePath);
+    textureImage = std::make_unique<TextureImage>(physicalDevice, *ctx.device, commandPool, texturePath);
 }

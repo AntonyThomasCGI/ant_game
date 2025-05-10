@@ -5,7 +5,7 @@
 #include "mesh.hpp"
 
 
-Mesh::Mesh(Device *device, std::vector<Vertex> vertices, std::vector<uint16_t> indicies)
+Mesh::Mesh(Device &device, std::vector<Vertex> vertices, std::vector<uint16_t> indicies)
     : device(device), vertices(vertices), indicies(indicies)
 {
 }
@@ -13,10 +13,10 @@ Mesh::Mesh(Device *device, std::vector<Vertex> vertices, std::vector<uint16_t> i
 
 Mesh::~Mesh()
 {
-    vkDestroyBuffer(device->getDevice(), vertexBuffer, nullptr);
-    vkFreeMemory(device->getDevice(), vertexBufferMemory, nullptr);
-    vkDestroyBuffer(device->getDevice(), indexBuffer, nullptr);
-    vkFreeMemory(device->getDevice(), indexBufferMemory, nullptr);
+    vkDestroyBuffer(device.getDevice(), vertexBuffer, nullptr);
+    vkFreeMemory(device.getDevice(), vertexBufferMemory, nullptr);
+    vkDestroyBuffer(device.getDevice(), indexBuffer, nullptr);
+    vkFreeMemory(device.getDevice(), indexBufferMemory, nullptr);
 }
 
 
@@ -45,9 +45,9 @@ void Mesh::createVertexBuffer(CommandPool &commandPool)
         stagingBufferMemory);
 
     void* data;
-    vkMapMemory(device->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory(device.getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data, vertices.data(), (size_t) bufferSize);
-    vkUnmapMemory(device->getDevice(), stagingBufferMemory);
+    vkUnmapMemory(device.getDevice(), stagingBufferMemory);
 
     commandPool.createBuffer(bufferSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -57,8 +57,8 @@ void Mesh::createVertexBuffer(CommandPool &commandPool)
 
     commandPool.copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 
-    vkDestroyBuffer(device->getDevice(), stagingBuffer, nullptr);
-    vkFreeMemory(device->getDevice(), stagingBufferMemory, nullptr);
+    vkDestroyBuffer(device.getDevice(), stagingBuffer, nullptr);
+    vkFreeMemory(device.getDevice(), stagingBufferMemory, nullptr);
 }
 
 
@@ -71,16 +71,16 @@ void Mesh::createIndexBuffer(CommandPool &commandPool)
     commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(device->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory(device.getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data, indicies.data(), (size_t) bufferSize);
-    vkUnmapMemory(device->getDevice(), stagingBufferMemory);
+    vkUnmapMemory(device.getDevice(), stagingBufferMemory);
 
     commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
     commandPool.copyBuffer(stagingBuffer, indexBuffer, bufferSize);
 
-    vkDestroyBuffer(device->getDevice(), stagingBuffer, nullptr);
-    vkFreeMemory(device->getDevice(), stagingBufferMemory, nullptr);
+    vkDestroyBuffer(device.getDevice(), stagingBuffer, nullptr);
+    vkFreeMemory(device.getDevice(), stagingBufferMemory, nullptr);
 }
 
 

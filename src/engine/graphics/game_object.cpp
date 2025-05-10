@@ -11,14 +11,14 @@ const std::string fragPath = "resources/shaders/flat_frag.spv";
 const std::string defaultSprite = "resources/textures/ant1.png";
 
 
-GameObject::GameObject(PhysicalDevice &physicalDevice, Device &device, CommandPool &commandPool, SwapChain &swapChain)
-    : physicalDevice(physicalDevice), commandPool(commandPool)
+GameObject::GameObject(GraphicsContext &ctx, CommandPool &commandPool, SwapChain &swapChain)
+    : ctx(ctx), commandPool(commandPool)
 {
-    material = new Material(device, commandPool);
-    material->setTexturePath(physicalDevice, defaultSprite);
+    material = new Material(ctx, commandPool);
+    material->setTexturePath(*ctx.physicalDevice, defaultSprite);
     material->setShader(swapChain, vertPath, fragPath);
 
-    mesh = std::make_unique<Square>(&device);
+    mesh = std::make_unique<Square>(*ctx.device);
     mesh->createBuffers(commandPool);
 }
 
@@ -33,7 +33,7 @@ void GameObject::setSpritePath(std::string texturePath)
 {
     // TODO
     material->cleanupDescriptorPool();
-    material->setTexturePath(physicalDevice, texturePath);
+    material->setTexturePath(*ctx.physicalDevice, texturePath);
     material->createDescriptorPool();
     material->createDescriptorSets();
 

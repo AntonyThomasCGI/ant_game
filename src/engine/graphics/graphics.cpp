@@ -9,31 +9,13 @@
 #include "graphics.hpp"
 
 
-
 VulkanGraphics::VulkanGraphics(Window &window)
     : window(window)
 {
     ctx = std::make_unique<GraphicsContext>(window);
 
-    // Create the allocator
-    VmaVulkanFunctions vulkanFunctions = {};
-    vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
-    vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
-
-    VmaAllocatorCreateInfo allocatorCreateInfo = {};
-    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
-    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
-    allocatorCreateInfo.physicalDevice = ctx->physicalDevice->getPhysicalDevice();
-
-    allocatorCreateInfo.device = ctx->device->getDevice();
-    allocatorCreateInfo.instance = ctx->instance->getInstance();
-    allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
-
-    vmaCreateAllocator(&allocatorCreateInfo, &allocator);
-    // End creating allocator
-
-    swapChain = std::make_unique<SwapChain>(*ctx->surface, *ctx->physicalDevice, *ctx->device, window);
-    commandPool = std::make_unique<CommandPool>(allocator, *ctx->physicalDevice, *ctx->device, *ctx->surface);
+    swapChain = std::make_unique<SwapChain>(*ctx);
+    commandPool = std::make_unique<CommandPool>(*ctx);
 
     // hmm, maybe it's ok to use one set of cmd buffers / sync objects for every asset?
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -53,13 +35,12 @@ VulkanGraphics::~VulkanGraphics()
         delete gameObj;
     }
     cleanupSyncObjects();
-    vmaDestroyAllocator(allocator);
 }
 
 
 GameObject* VulkanGraphics::addGameObject(std::string name)
 {
-    GameObject *gameObj = new GameObject(*ctx->physicalDevice, *ctx->device, *commandPool, *swapChain);
+    GameObject *gameObj = new GameObject(*ctx, *commandPool, *swapChain);
     gameObjects[name] = gameObj;
 
     return gameObj;

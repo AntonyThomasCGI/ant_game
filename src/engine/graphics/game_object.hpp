@@ -7,6 +7,7 @@
 
 #include "command_buffer.hpp"
 #include "command_pool.hpp"
+#include "context.hpp"
 #include "geometry/shapes/square.hpp"
 #include "material.hpp"
 #include "physical_device.hpp"
@@ -17,7 +18,7 @@ class GameObject
 {
 public:
 
-    GameObject(PhysicalDevice &physicalDevice, Device &device, CommandPool &commandPool, SwapChain &swapChain);
+    GameObject(GraphicsContext &ctx, CommandPool &commandPool, SwapChain &swapChain);
     ~GameObject();
 
     void move(glm::vec2 trans, float rot);
@@ -31,8 +32,8 @@ public:
     void draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame);
 
 private:
+    GraphicsContext &ctx;
 
-    PhysicalDevice &physicalDevice;
     CommandPool &commandPool;
 
     Material *material;

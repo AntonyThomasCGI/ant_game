@@ -4,17 +4,14 @@
 #include <memory>
 #include <vector>
 
-#include "devices/window.hpp"
-#include "logical_device.hpp"
-#include "physical_device.hpp"
+#include "context.hpp"
 #include "render_pass.hpp"
-#include "surface.hpp"
 
 
 class SwapChain
 {
 public:
-    SwapChain(Surface &surface, PhysicalDevice &physicalDevice, Device &device, Window &window);
+    SwapChain(GraphicsContext &ctx);
     ~SwapChain();
 
     void cleanupSwapChain();
@@ -36,6 +33,8 @@ public:
 
 
 private:
+    GraphicsContext &ctx;
+
     VkSwapchainKHR swapChain;
     std::unique_ptr<RenderPass> renderPass;
 
@@ -43,10 +42,6 @@ private:
 
     std::vector<VkImage> swapChainImages;
 
-    Surface &surface;
-    PhysicalDevice &physicalDevice;
-    Device &device;
-    Window &window;
 
     std::vector<VkImageView> swapChainImageViews;
     std::vector<VkFramebuffer> swapChainFramebuffers;

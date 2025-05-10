@@ -4,14 +4,13 @@
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
-#include "logical_device.hpp"
-#include "surface.hpp"
+#include "context.hpp"
 
 
 class CommandPool
 {
 public:
-    CommandPool(VmaAllocator &allocator, PhysicalDevice &physicalDevice, Device &device, Surface &surface);
+    CommandPool(GraphicsContext &ctx);
     ~CommandPool();
 
     VkCommandPool const getCommandPool() const { return commandPool; }
@@ -22,10 +21,8 @@ public:
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
     void createBuffer2(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VmaAllocation& allocation);
 
-    VmaAllocator &allocator;
-
 private:
-    VkCommandPool commandPool;
+    GraphicsContext &ctx;
 
-    Device &device;
+    VkCommandPool commandPool;
 };

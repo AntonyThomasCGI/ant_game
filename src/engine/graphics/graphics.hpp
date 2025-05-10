@@ -4,8 +4,6 @@
 #include <memory>
 #include <vector>
 
-#include <vk_mem_alloc.h>
-
 #include "command_buffer.hpp"
 #include "command_pool.hpp"
 #include "context.hpp"
@@ -37,8 +35,6 @@ private:
     Window &window;
 
     std::unique_ptr<GraphicsContext> ctx;
-
-    VmaAllocator allocator;
 
     std::unique_ptr<SwapChain> swapChain;
     std::unique_ptr<CommandPool> commandPool;

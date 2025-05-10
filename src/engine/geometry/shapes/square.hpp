@@ -8,7 +8,7 @@
 class Square : public Mesh
 {
 public:
-    Square(Device *device) : Mesh(
+    Square(Device &device) : Mesh(
         device,
         std::vector<Vertex>{
             {{-0.5f, -0.5f}, {1.0f, 0.0f}},

@@ -14,14 +14,14 @@ class Mesh
 {
 
 public:
-    Mesh(Device *device, std::vector<Vertex> vertices, std::vector<uint16_t> indicies = {});
+    Mesh(Device &device, std::vector<Vertex> vertices, std::vector<uint16_t> indicies = {});
     ~Mesh();
 
     void createBuffers(CommandPool &commandPool);
     void draw(CommandBuffer &commandBuffer, SwapChain &swapChain);
 
 private:
-    Device *device;
+    Device &device;
     std::vector<Vertex> vertices;
     std::vector<uint16_t> indicies;
 

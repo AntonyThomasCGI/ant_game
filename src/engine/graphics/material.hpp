@@ -5,7 +5,6 @@
 
 #include "command_buffer.hpp"
 #include "command_pool.hpp"
-#include "logical_device.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
 
@@ -13,7 +12,7 @@
 class Material
 {
 public:
-    Material(Device &device, CommandPool &commandPool);
+    Material(GraphicsContext &ctx, CommandPool &commandPool);
     //Material(std::string vertShader, std::string fragShader, std::string texturePath);
     ~Material();
 
@@ -29,7 +28,7 @@ public:
     void createDescriptorPool();
 
 private:
-    Device &device;
+    GraphicsContext &ctx;
     CommandPool &commandPool;
 
     GraphicsPipeline *graphicsPipeline;
