@@ -17,7 +17,7 @@ public:
     ~Material();
 
     void setShader(SwapChain &swapChain, std::string vertShader, std::string fragShader);
-    void setTexturePath(PhysicalDevice &physicalDevice, std::string texturePath);
+    void setTexturePath(std::string texturePath);
 
     void bind(CommandBuffer &commandBuffer, uint32_t currentFrame);
 

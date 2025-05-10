@@ -88,6 +88,7 @@ void CommandPool::createBuffer2(VkDeviceSize size, VkBufferUsageFlags usage, VkM
     vmaAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
     // TODO, pretty sure this is hard coded to one type of buffer creation
+    //   Maybe it's better to accept this as an arg
     vmaAllocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
         VMA_ALLOCATION_CREATE_MAPPED_BIT;
 

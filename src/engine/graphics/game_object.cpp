@@ -15,10 +15,10 @@ GameObject::GameObject(GraphicsContext &ctx, CommandPool &commandPool, SwapChain
     : ctx(ctx), commandPool(commandPool)
 {
     material = new Material(ctx, commandPool);
-    material->setTexturePath(*ctx.physicalDevice, defaultSprite);
+    material->setTexturePath(defaultSprite);
     material->setShader(swapChain, vertPath, fragPath);
 
-    mesh = std::make_unique<Square>(*ctx.device);
+    mesh = std::make_unique<Square>(ctx);
     mesh->createBuffers(commandPool);
 }
 
@@ -33,7 +33,7 @@ void GameObject::setSpritePath(std::string texturePath)
 {
     // TODO
     material->cleanupDescriptorPool();
-    material->setTexturePath(*ctx.physicalDevice, texturePath);
+    material->setTexturePath(texturePath);
     material->createDescriptorPool();
     material->createDescriptorSets();
 

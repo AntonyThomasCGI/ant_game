@@ -235,7 +235,7 @@ void Material::createUniformBuffers()
 }
 
 
-void Material::setTexturePath(PhysicalDevice &physicalDevice, std::string texturePath)
+void Material::setTexturePath(std::string texturePath)
 {
-    textureImage = std::make_unique<TextureImage>(physicalDevice, *ctx.device, commandPool, texturePath);
+    textureImage = std::make_unique<TextureImage>(ctx, commandPool, texturePath);
 }

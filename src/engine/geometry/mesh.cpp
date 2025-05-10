@@ -1,22 +1,25 @@
 
+
 #include <iostream>
 #include <stdexcept>
 
 #include "mesh.hpp"
 
 
-Mesh::Mesh(Device &device, std::vector<Vertex> vertices, std::vector<uint16_t> indicies)
-    : device(device), vertices(vertices), indicies(indicies)
+Mesh::Mesh(GraphicsContext &ctx, std::vector<Vertex> vertices, std::vector<uint16_t> indicies)
+    : ctx(ctx), vertices(vertices), indicies(indicies)
 {
 }
 
 
 Mesh::~Mesh()
 {
-    vkDestroyBuffer(device.getDevice(), vertexBuffer, nullptr);
-    vkFreeMemory(device.getDevice(), vertexBufferMemory, nullptr);
-    vkDestroyBuffer(device.getDevice(), indexBuffer, nullptr);
-    vkFreeMemory(device.getDevice(), indexBufferMemory, nullptr);
+    vkDestroyBuffer(ctx.device->getDevice(), vertexBuffer, nullptr);
+    //vkFreeMemory(ctx.device->getDevice(), vertexBufferMemory, nullptr);
+    vmaFreeMemory(ctx.allocator, vertexBufferMemory);
+    vkDestroyBuffer(ctx.device->getDevice(), indexBuffer, nullptr);
+    //vkFreeMemory(ctx.device->getDevice(), indexBufferMemory, nullptr);
+    vmaFreeMemory(ctx.allocator, indexBufferMemory);
 }
 
 
@@ -36,8 +39,8 @@ void Mesh::createVertexBuffer(CommandPool &commandPool)
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
     VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    commandPool.createBuffer(
+    VmaAllocation stagingBufferMemory;
+    commandPool.createBuffer2(
         bufferSize,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -45,11 +48,13 @@ void Mesh::createVertexBuffer(CommandPool &commandPool)
         stagingBufferMemory);
 
     void* data;
-    vkMapMemory(device.getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+    //vkMapMemory(ctx.device->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+    vmaMapMemory(ctx.allocator, stagingBufferMemory, &data);
     memcpy(data, vertices.data(), (size_t) bufferSize);
-    vkUnmapMemory(device.getDevice(), stagingBufferMemory);
+    //vkUnmapMemory(ctx.device->getDevice(), stagingBufferMemory);
+    vmaUnmapMemory(ctx.allocator, stagingBufferMemory);
 
-    commandPool.createBuffer(bufferSize,
+    commandPool.createBuffer2(bufferSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         vertexBuffer,
@@ -57,8 +62,9 @@ void Mesh::createVertexBuffer(CommandPool &commandPool)
 
     commandPool.copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 
-    vkDestroyBuffer(device.getDevice(), stagingBuffer, nullptr);
-    vkFreeMemory(device.getDevice(), stagingBufferMemory, nullptr);
+    vkDestroyBuffer(ctx.device->getDevice(), stagingBuffer, nullptr);
+    //vkFreeMemory(ctx.device->getDevice(), stagingBufferMemory, nullptr);
+    vmaFreeMemory(ctx.allocator, stagingBufferMemory);
 }
 
 
@@ -67,20 +73,23 @@ void Mesh::createIndexBuffer(CommandPool &commandPool)
     VkDeviceSize bufferSize = sizeof(indicies[0]) * indicies.size();
 
     VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    VmaAllocation stagingBufferMemory;
+    commandPool.createBuffer2(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(device.getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+    //vkMapMemory(ctx.device->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+    vmaMapMemory(ctx.allocator, stagingBufferMemory, &data);
     memcpy(data, indicies.data(), (size_t) bufferSize);
-    vkUnmapMemory(device.getDevice(), stagingBufferMemory);
+    //vkUnmapMemory(ctx.device->getDevice(), stagingBufferMemory);
+    vmaUnmapMemory(ctx.allocator, stagingBufferMemory);
 
-    commandPool.createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+    commandPool.createBuffer2(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
     commandPool.copyBuffer(stagingBuffer, indexBuffer, bufferSize);
 
-    vkDestroyBuffer(device.getDevice(), stagingBuffer, nullptr);
-    vkFreeMemory(device.getDevice(), stagingBufferMemory, nullptr);
+    vkDestroyBuffer(ctx.device->getDevice(), stagingBuffer, nullptr);
+    //vkFreeMemory(ctx.device->getDevice(), stagingBufferMemory, nullptr);
+    vmaFreeMemory(ctx.allocator, stagingBufferMemory);
 }
 
 

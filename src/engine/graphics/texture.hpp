@@ -2,14 +2,13 @@
 #pragma once
 
 #include "command_pool.hpp"
-#include "logical_device.hpp"
-#include "physical_device.hpp"
+#include "context.hpp"
 
 
 class TextureImage
 {
 public:
-    TextureImage(PhysicalDevice &physicalDevice, Device &device, CommandPool &commandPool, std::string texturePath);
+    TextureImage(GraphicsContext &ctx, CommandPool &commandPool, std::string texturePath);
     ~TextureImage();
 
     const VkImageView getTextureImageView() const { return textureImageView; }
@@ -24,8 +23,7 @@ public:
     //const VkImage &getTextureImage() const { return textureImage; };
 
 private:
-    Device &device;
-    PhysicalDevice &physicalDevice;
+    GraphicsContext &ctx;
     CommandPool &commandPool;
 
     VkImage textureImage;

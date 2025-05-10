@@ -31,8 +31,7 @@ const unsigned int GRID_HEIGHT = HEIGHT / 40;
 class Grid
 {
 public:
-
-    const float tileWidth = 40.0;
+const float tileWidth = 40.0;
 
     Grid(Engine *engine) {
 

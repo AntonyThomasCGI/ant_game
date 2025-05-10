@@ -2,6 +2,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <vk_mem_alloc.h>
+
 #include <vulkan/vulkan.h>
 #include <stdexcept>
 #include <iostream>
@@ -9,7 +11,8 @@
 #include "texture.hpp"
 
 
-TextureImage::TextureImage(PhysicalDevice &physicalDevice, Device &device, CommandPool &commandPool, std::string texturePath) : physicalDevice(physicalDevice), device(device), commandPool(commandPool)
+TextureImage::TextureImage(GraphicsContext &ctx, CommandPool &commandPool, std::string texturePath)
+    : ctx(ctx), commandPool(commandPool)
 {
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(texturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -20,15 +23,17 @@ TextureImage::TextureImage(PhysicalDevice &physicalDevice, Device &device, Comma
     }
 
     VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    VmaAllocation stagingBufferMemory;
 
-    commandPool.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    commandPool.createBuffer2(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(device.getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+    //vkMapMemory(ctx.device->getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+    vmaMapMemory(ctx.allocator, stagingBufferMemory, &data);
     memcpy(data, pixels, static_cast<size_t>(imageSize));
 
-    vkUnmapMemory(device.getDevice(), stagingBufferMemory);
+    //vkUnmapMemory(ctx.device->getDevice(), stagingBufferMemory);
+    vmaUnmapMemory(ctx.allocator, stagingBufferMemory);
 
     stbi_image_free(pixels);
 
@@ -45,8 +50,9 @@ TextureImage::TextureImage(PhysicalDevice &physicalDevice, Device &device, Comma
 
     transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    vkDestroyBuffer(device.getDevice(), stagingBuffer, nullptr);
-    vkFreeMemory(device.getDevice(), stagingBufferMemory, nullptr);
+    vkDestroyBuffer(ctx.device->getDevice(), stagingBuffer, nullptr);
+    //vkFreeMemory(ctx.device->getDevice(), stagingBufferMemory, nullptr);
+    vmaFreeMemory(ctx.allocator, stagingBufferMemory);
 
     createTextureImageView();
     createTextureSampler();
@@ -55,11 +61,11 @@ TextureImage::TextureImage(PhysicalDevice &physicalDevice, Device &device, Comma
 
 TextureImage::~TextureImage()
 {
-    vkDestroySampler(device.getDevice(), textureSampler, nullptr);
-    vkDestroyImageView(device.getDevice(), textureImageView, nullptr);
+    vkDestroySampler(ctx.device->getDevice(), textureSampler, nullptr);
+    vkDestroyImageView(ctx.device->getDevice(), textureImageView, nullptr);
 
-    vkDestroyImage(device.getDevice(), textureImage, nullptr);
-    vkFreeMemory(device.getDevice(), textureImageMemory, nullptr);
+    vkDestroyImage(ctx.device->getDevice(), textureImage, nullptr);
+    vkFreeMemory(ctx.device->getDevice(), textureImageMemory, nullptr);
 }
 
 
@@ -77,7 +83,7 @@ void TextureImage::createTextureImageView()
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    if (vkCreateImageView(device.getDevice(), &viewInfo, nullptr, &textureImageView) != VK_SUCCESS) {
+    if (vkCreateImageView(ctx.device->getDevice(), &viewInfo, nullptr, &textureImageView) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture image view!");
     }
 }
@@ -96,7 +102,7 @@ void TextureImage::createTextureSampler()
 
     VkPhysicalDeviceProperties properties{};
     // Could store these props on physical device at program start instead.
-    vkGetPhysicalDeviceProperties(physicalDevice.getPhysicalDevice(), &properties);
+    vkGetPhysicalDeviceProperties(ctx.physicalDevice->getPhysicalDevice(), &properties);
     samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
 
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -108,7 +114,7 @@ void TextureImage::createTextureSampler()
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = 0.0f;
 
-    if (vkCreateSampler(device.getDevice(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(ctx.device->getDevice(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
 }
@@ -131,23 +137,23 @@ void TextureImage::createImage(uint32_t width, uint32_t height, VkFormat format,
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.flags = 0; // Optional
 
-    if (vkCreateImage(device.getDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
+    if (vkCreateImage(ctx.device->getDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(device.getDevice(), image, &memRequirements);
+    vkGetImageMemoryRequirements(ctx.device->getDevice(), image, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = physicalDevice.findMemoryType(memRequirements.memoryTypeBits, properties);
+    allocInfo.memoryTypeIndex = ctx.physicalDevice->findMemoryType(memRequirements.memoryTypeBits, properties);
 
-    if (vkAllocateMemory(device.getDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(ctx.device->getDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate image memory!");
     }
 
-    vkBindImageMemory(device.getDevice(), image, imageMemory, 0);
+    vkBindImageMemory(ctx.device->getDevice(), image, imageMemory, 0);
 }
 
 
