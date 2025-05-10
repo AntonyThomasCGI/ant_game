@@ -8,6 +8,7 @@
 
 #include "command_buffer.hpp"
 #include "command_pool.hpp"
+#include "context.hpp"
 #include "devices/window.hpp"
 #include "game_object.hpp"
 #include "geometry/shapes/square.hpp"
@@ -35,12 +36,10 @@ public:
 private:
     Window &window;
 
+    std::unique_ptr<GraphicsContext> ctx;
+
     VmaAllocator allocator;
 
-    std::unique_ptr<Instance> instance;
-    std::unique_ptr<Surface> surface;
-    std::unique_ptr<PhysicalDevice> physicalDevice;
-    std::unique_ptr<Device> device;
     std::unique_ptr<SwapChain> swapChain;
     std::unique_ptr<CommandPool> commandPool;
     std::unique_ptr<Material> material;

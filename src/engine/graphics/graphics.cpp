@@ -10,13 +10,10 @@
 
 
 
-VulkanGraphics::VulkanGraphics(Window &window) : window(window)
+VulkanGraphics::VulkanGraphics(Window &window)
+    : window(window)
 {
-    instance = std::make_unique<Instance>(window);
-    surface = std::make_unique<Surface>(*instance, window);
-    physicalDevice = std::make_unique<PhysicalDevice>(*instance, *surface);
-    physicalDevice->pickPhysicalDevice();
-    device = std::make_unique<Device>(*instance, *surface, *physicalDevice);
+    ctx = std::make_unique<GraphicsContext>(window);
 
     // Create the allocator
     VmaVulkanFunctions vulkanFunctions = {};
@@ -26,22 +23,22 @@ VulkanGraphics::VulkanGraphics(Window &window) : window(window)
     VmaAllocatorCreateInfo allocatorCreateInfo = {};
     allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
     allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
-    allocatorCreateInfo.physicalDevice = physicalDevice->getPhysicalDevice();
+    allocatorCreateInfo.physicalDevice = ctx->physicalDevice->getPhysicalDevice();
 
-    allocatorCreateInfo.device = device->getDevice();
-    allocatorCreateInfo.instance = instance->getInstance();
+    allocatorCreateInfo.device = ctx->device->getDevice();
+    allocatorCreateInfo.instance = ctx->instance->getInstance();
     allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
 
     vmaCreateAllocator(&allocatorCreateInfo, &allocator);
     // End creating allocator
 
-    swapChain = std::make_unique<SwapChain>(*surface, *physicalDevice, *device, window);
-    commandPool = std::make_unique<CommandPool>(allocator, *physicalDevice, *device, *surface);
+    swapChain = std::make_unique<SwapChain>(*ctx->surface, *ctx->physicalDevice, *ctx->device, window);
+    commandPool = std::make_unique<CommandPool>(allocator, *ctx->physicalDevice, *ctx->device, *ctx->surface);
 
     // hmm, maybe it's ok to use one set of cmd buffers / sync objects for every asset?
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        commandBuffers[i] = std::make_unique<CommandBuffer>(*device, *commandPool);
+        commandBuffers[i] = std::make_unique<CommandBuffer>(*ctx->device, *commandPool);
     }
 
     createSyncObjects();
@@ -50,7 +47,7 @@ VulkanGraphics::VulkanGraphics(Window &window) : window(window)
 
 VulkanGraphics::~VulkanGraphics()
 {
-    vkDeviceWaitIdle(device->getDevice());
+    vkDeviceWaitIdle(ctx->device->getDevice());
 
     for (auto const& [name, gameObj] : gameObjects) {
         delete gameObj;
@@ -62,7 +59,7 @@ VulkanGraphics::~VulkanGraphics()
 
 GameObject* VulkanGraphics::addGameObject(std::string name)
 {
-    GameObject *gameObj = new GameObject(*physicalDevice, *device, *commandPool, *swapChain);
+    GameObject *gameObj = new GameObject(*ctx->physicalDevice, *ctx->device, *commandPool, *swapChain);
     gameObjects[name] = gameObj;
 
     return gameObj;
@@ -82,9 +79,9 @@ void VulkanGraphics::createSyncObjects() {
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-            vkCreateFence(device->getDevice(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+        if (vkCreateSemaphore(ctx->device->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(ctx->device->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+            vkCreateFence(ctx->device->getDevice(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create semaphores!");
         }
     }
@@ -92,12 +89,12 @@ void VulkanGraphics::createSyncObjects() {
 
 
 void VulkanGraphics::cleanupSyncObjects() {
-    vkDeviceWaitIdle(device->getDevice());
+    vkDeviceWaitIdle(ctx->device->getDevice());
 
     for (size_t i = 0; i < imageAvailableSemaphores.size(); i++) {
-        vkDestroySemaphore(device->getDevice(), imageAvailableSemaphores[i], nullptr);
-        vkDestroySemaphore(device->getDevice(), renderFinishedSemaphores[i], nullptr);
-        vkDestroyFence(device->getDevice(), inFlightFences[i], nullptr);
+        vkDestroySemaphore(ctx->device->getDevice(), imageAvailableSemaphores[i], nullptr);
+        vkDestroySemaphore(ctx->device->getDevice(), renderFinishedSemaphores[i], nullptr);
+        vkDestroyFence(ctx->device->getDevice(), inFlightFences[i], nullptr);
     }
 }
 
@@ -110,7 +107,7 @@ void VulkanGraphics::onResize() {
         glfwWaitEvents();
     }
 
-    vkDeviceWaitIdle(device->getDevice());
+    vkDeviceWaitIdle(ctx->device->getDevice());
 
     cleanupSyncObjects();
     swapChain->cleanupSwapChain();
@@ -123,10 +120,10 @@ void VulkanGraphics::onResize() {
 
 void VulkanGraphics::update()
 {
-    vkWaitForFences(device->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(ctx->device->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(device->getDevice(), swapChain->getSwapChain(), 5e+9, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(ctx->device->getDevice(), swapChain->getSwapChain(), 5e+9, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         onResize();
         return;
@@ -138,7 +135,7 @@ void VulkanGraphics::update()
     swapChain->setCurrentImageIndex(imageIndex);
 
     // Only reset the fence if we are submitting work.
-    vkResetFences(device->getDevice(), 1, &inFlightFences[currentFrame]);
+    vkResetFences(ctx->device->getDevice(), 1, &inFlightFences[currentFrame]);
 
     commandBuffers[currentFrame]->start();
 
@@ -179,7 +176,7 @@ void VulkanGraphics::update()
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
-    vkQueuePresentKHR(device->getPresentQueue(), &presentInfo);
+    vkQueuePresentKHR(ctx->device->getPresentQueue(), &presentInfo);
     //**
 
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
