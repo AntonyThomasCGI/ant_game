@@ -54,7 +54,7 @@ void Window::createWindow(unsigned int width, unsigned int height)
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    window = glfwCreateWindow(width, height, "Vulkan Grid", nullptr, nullptr);
+    window = glfwCreateWindow(width, height, "Ant Game", nullptr, nullptr);
 
     glfwSetWindowUserPointer(window, this);
 

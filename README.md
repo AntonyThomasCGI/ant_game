@@ -1,3 +1,5 @@
-# Vulkan Grid
+# Ant Game
 
-Simple grid renderer to learn the Vulkan API
+Simple game about ant (ant game) written with vulkan.
+
+Very much WIP
