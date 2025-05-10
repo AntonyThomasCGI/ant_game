@@ -8,11 +8,11 @@
 class CommandPool;
 
 
-class LogicalDevice
+class Device
 {
 public:
-    LogicalDevice(Instance &instance, Surface &surface, PhysicalDevice &physicalDevice);
-    ~LogicalDevice();
+    Device(Instance &instance, Surface &surface, PhysicalDevice &physicalDevice);
+    ~Device();
 
     const VkDevice &getDevice() const { return device; }
     VkQueue &getGraphicsQueue() { return graphicsQueue; }
@@ -28,5 +28,5 @@ private:
     VkQueue graphicsQueue;
     VkQueue presentQueue;
 
-    void createLogicalDevice();
+    void createDevice();
 };

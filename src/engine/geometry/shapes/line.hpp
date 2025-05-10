@@ -8,8 +8,8 @@
 class Line : public Mesh
 {
 public:
-    Line(LogicalDevice *logicalDevice) : Mesh(
-        logicalDevice,
+    Line(Device *device) : Mesh(
+        device,
         std::vector<Vertex>{
             {{-0.5f, -0.5f}},
             {{0.5f, -0.5f}},

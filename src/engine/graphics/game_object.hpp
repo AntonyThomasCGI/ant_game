@@ -17,7 +17,7 @@ class GameObject
 {
 public:
 
-    GameObject(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain);
+    GameObject(PhysicalDevice &physicalDevice, Device &device, CommandPool &commandPool, SwapChain &swapChain);
     ~GameObject();
 
     void move(glm::vec2 trans, float rot);

@@ -6,12 +6,12 @@
 #include "swap_chain.hpp"
 
 
-SwapChain::SwapChain(Surface &surface, PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, Window &window) :
-    surface(surface), physicalDevice(physicalDevice), logicalDevice(logicalDevice), window(window)
+SwapChain::SwapChain(Surface &surface, PhysicalDevice &physicalDevice, Device &device, Window &window) :
+    surface(surface), physicalDevice(physicalDevice), device(device), window(window)
 {
     createSwapChain();
     createImageViews();
-    renderPass = std::make_unique<RenderPass>(logicalDevice, swapChainImageFormat);
+    renderPass = std::make_unique<RenderPass>(device, swapChainImageFormat);
     createFramebuffers();
 }
 
@@ -24,14 +24,14 @@ SwapChain::~SwapChain()
 
 void SwapChain::cleanupSwapChain() {
     for (auto framebuffer : swapChainFramebuffers) {
-        vkDestroyFramebuffer(logicalDevice.getDevice(), framebuffer, nullptr);
+        vkDestroyFramebuffer(device.getDevice(), framebuffer, nullptr);
     }
 
     for (auto imageView : swapChainImageViews) {
-        vkDestroyImageView(logicalDevice.getDevice(), imageView, nullptr);
+        vkDestroyImageView(device.getDevice(), imageView, nullptr);
     }
 
-    vkDestroySwapchainKHR(logicalDevice.getDevice(), swapChain, nullptr);
+    vkDestroySwapchainKHR(device.getDevice(), swapChain, nullptr);
 }
 
 
@@ -76,13 +76,13 @@ void SwapChain::createSwapChain() {
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(logicalDevice.getDevice(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(device.getDevice(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
     }
 
-    vkGetSwapchainImagesKHR(logicalDevice.getDevice(), swapChain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, nullptr);
     swapChainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(logicalDevice.getDevice(), swapChain, &imageCount, swapChainImages.data());
+    vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, swapChainImages.data());
 
     swapChainImageFormat = surfaceFormat.format;
     swapChainExtent = swapExtent;
@@ -108,7 +108,7 @@ void SwapChain::createImageViews() {
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(logicalDevice.getDevice(), &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
+        if (vkCreateImageView(device.getDevice(), &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image views!");
         }
     }
@@ -135,7 +135,7 @@ void SwapChain::createFramebuffers() {
         framebufferInfo.height = swapChainExtent.height;
         framebufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(logicalDevice.getDevice(), &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(device.getDevice(), &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
         }
     }

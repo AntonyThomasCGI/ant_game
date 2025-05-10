@@ -40,7 +40,7 @@ private:
     std::unique_ptr<Instance> instance;
     std::unique_ptr<Surface> surface;
     std::unique_ptr<PhysicalDevice> physicalDevice;
-    std::unique_ptr<LogicalDevice> logicalDevice;
+    std::unique_ptr<Device> device;
     std::unique_ptr<SwapChain> swapChain;
     std::unique_ptr<CommandPool> commandPool;
     std::unique_ptr<Material> material;

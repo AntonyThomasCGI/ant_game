@@ -13,7 +13,7 @@
 class Material
 {
 public:
-    Material(LogicalDevice &logicalDevice, CommandPool &commandPool);
+    Material(Device &device, CommandPool &commandPool);
     //Material(std::string vertShader, std::string fragShader, std::string texturePath);
     ~Material();
 
@@ -29,7 +29,7 @@ public:
     void createDescriptorPool();
 
 private:
-    LogicalDevice &logicalDevice;
+    Device &device;
     CommandPool &commandPool;
 
     GraphicsPipeline *graphicsPipeline;

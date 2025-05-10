@@ -9,7 +9,7 @@
 class TextureImage
 {
 public:
-    TextureImage(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, CommandPool &commandPool, std::string texturePath);
+    TextureImage(PhysicalDevice &physicalDevice, Device &device, CommandPool &commandPool, std::string texturePath);
     ~TextureImage();
 
     const VkImageView getTextureImageView() const { return textureImageView; }
@@ -24,7 +24,7 @@ public:
     //const VkImage &getTextureImage() const { return textureImage; };
 
 private:
-    LogicalDevice &logicalDevice;
+    Device &device;
     PhysicalDevice &physicalDevice;
     CommandPool &commandPool;
 

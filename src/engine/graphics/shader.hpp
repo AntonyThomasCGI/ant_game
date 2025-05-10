@@ -19,7 +19,7 @@
 class Shader
 {
 public:
-    Shader(LogicalDevice &logicalDevice, std::string vertShader, std::string fragShader);
+    Shader(Device &device, std::string vertShader, std::string fragShader);
     //Shader(VkDevice &device, CommandPool &commandPool, SwapChain &swapChain, TextureImage &textureImage, std::string vertShader, std::string fragShader);
     ~Shader();
 
@@ -31,7 +31,7 @@ public:
     VkShaderModule fragShaderModule;
 
 private:
-    LogicalDevice &logicalDevice;
+    Device &device;
 
     //VkDescriptorSetLayout descriptorSetLayout;
 

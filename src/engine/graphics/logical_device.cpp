@@ -5,18 +5,18 @@
 #include "logical_device.hpp"
 
 
-LogicalDevice::LogicalDevice(Instance &instance, Surface &surface, PhysicalDevice &physicalDevice) : instance(instance), surface(surface), physicalDevice(physicalDevice)
+Device::Device(Instance &instance, Surface &surface, PhysicalDevice &physicalDevice) : instance(instance), surface(surface), physicalDevice(physicalDevice)
 {
-    createLogicalDevice();
+    createDevice();
 }
 
-LogicalDevice::~LogicalDevice()
+Device::~Device()
 {
 
     vkDestroyDevice(device, nullptr);
 }
 
-void LogicalDevice::createLogicalDevice() {
+void Device::createDevice() {
     QueueFamilyIndices indicies = surface.findQueueFamilies(physicalDevice.getPhysicalDevice());
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;

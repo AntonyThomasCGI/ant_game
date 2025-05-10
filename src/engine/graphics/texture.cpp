@@ -9,7 +9,7 @@
 #include "texture.hpp"
 
 
-TextureImage::TextureImage(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, CommandPool &commandPool, std::string texturePath) : physicalDevice(physicalDevice), logicalDevice(logicalDevice), commandPool(commandPool)
+TextureImage::TextureImage(PhysicalDevice &physicalDevice, Device &device, CommandPool &commandPool, std::string texturePath) : physicalDevice(physicalDevice), device(device), commandPool(commandPool)
 {
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(texturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -25,10 +25,10 @@ TextureImage::TextureImage(PhysicalDevice &physicalDevice, LogicalDevice &logica
     commandPool.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(logicalDevice.getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+    vkMapMemory(device.getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
     memcpy(data, pixels, static_cast<size_t>(imageSize));
 
-    vkUnmapMemory(logicalDevice.getDevice(), stagingBufferMemory);
+    vkUnmapMemory(device.getDevice(), stagingBufferMemory);
 
     stbi_image_free(pixels);
 
@@ -45,8 +45,8 @@ TextureImage::TextureImage(PhysicalDevice &physicalDevice, LogicalDevice &logica
 
     transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    vkDestroyBuffer(logicalDevice.getDevice(), stagingBuffer, nullptr);
-    vkFreeMemory(logicalDevice.getDevice(), stagingBufferMemory, nullptr);
+    vkDestroyBuffer(device.getDevice(), stagingBuffer, nullptr);
+    vkFreeMemory(device.getDevice(), stagingBufferMemory, nullptr);
 
     createTextureImageView();
     createTextureSampler();
@@ -55,11 +55,11 @@ TextureImage::TextureImage(PhysicalDevice &physicalDevice, LogicalDevice &logica
 
 TextureImage::~TextureImage()
 {
-    vkDestroySampler(logicalDevice.getDevice(), textureSampler, nullptr);
-    vkDestroyImageView(logicalDevice.getDevice(), textureImageView, nullptr);
+    vkDestroySampler(device.getDevice(), textureSampler, nullptr);
+    vkDestroyImageView(device.getDevice(), textureImageView, nullptr);
 
-    vkDestroyImage(logicalDevice.getDevice(), textureImage, nullptr);
-    vkFreeMemory(logicalDevice.getDevice(), textureImageMemory, nullptr);
+    vkDestroyImage(device.getDevice(), textureImage, nullptr);
+    vkFreeMemory(device.getDevice(), textureImageMemory, nullptr);
 }
 
 
@@ -77,7 +77,7 @@ void TextureImage::createTextureImageView()
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    if (vkCreateImageView(logicalDevice.getDevice(), &viewInfo, nullptr, &textureImageView) != VK_SUCCESS) {
+    if (vkCreateImageView(device.getDevice(), &viewInfo, nullptr, &textureImageView) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture image view!");
     }
 }
@@ -108,7 +108,7 @@ void TextureImage::createTextureSampler()
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = 0.0f;
 
-    if (vkCreateSampler(logicalDevice.getDevice(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(device.getDevice(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
 }
@@ -131,23 +131,23 @@ void TextureImage::createImage(uint32_t width, uint32_t height, VkFormat format,
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.flags = 0; // Optional
 
-    if (vkCreateImage(logicalDevice.getDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
+    if (vkCreateImage(device.getDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(logicalDevice.getDevice(), image, &memRequirements);
+    vkGetImageMemoryRequirements(device.getDevice(), image, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = physicalDevice.findMemoryType(memRequirements.memoryTypeBits, properties);
 
-    if (vkAllocateMemory(logicalDevice.getDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(device.getDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate image memory!");
     }
 
-    vkBindImageMemory(logicalDevice.getDevice(), image, imageMemory, 0);
+    vkBindImageMemory(device.getDevice(), image, imageMemory, 0);
 }
 
 

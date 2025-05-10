@@ -24,8 +24,8 @@ static std::vector<char> readFile(const std::string& filename) {
     return buffer;
 }
 
-Shader::Shader(LogicalDevice &logicalDevice, std::string vertShader, std::string fragShader)
-    : logicalDevice(logicalDevice)
+Shader::Shader(Device &device, std::string vertShader, std::string fragShader)
+    : device(device)
 {
     auto vertShaderCode = readFile(vertShader);
     auto fragShaderCode = readFile(fragShader);
@@ -207,7 +207,7 @@ VkShaderModule Shader::createShaderModule(const std::vector<char>& code) {
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
     VkShaderModule shaderModule;
-    if (vkCreateShaderModule(logicalDevice.getDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+    if (vkCreateShaderModule(device.getDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shader module!");
     }
 

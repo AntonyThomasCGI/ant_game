@@ -6,7 +6,7 @@
 class RenderPass
 {
 public:
-    RenderPass(LogicalDevice &logicalDevice, VkFormat &imageFormat);
+    RenderPass(Device &device, VkFormat &imageFormat);
     ~RenderPass();
 
     VkRenderPass const getRenderPass() const { return renderPass; }
@@ -15,7 +15,7 @@ private:
     VkRenderPass renderPass;
     VkFormat imageFormat;
 
-    LogicalDevice &logicalDevice;
+    Device &device;
 
     void createRenderPass();
 };

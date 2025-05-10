@@ -3,8 +3,8 @@
 #include "geometry/vertex.hpp"
 
 
-GraphicsPipeline::GraphicsPipeline(LogicalDevice &logicalDevice, SwapChain &swapChain, VkDescriptorSetLayout &descriptorSet, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule)
-    : logicalDevice(logicalDevice)
+GraphicsPipeline::GraphicsPipeline(Device &device, SwapChain &swapChain, VkDescriptorSetLayout &descriptorSet, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule)
+    : device(device)
 {
     createGraphicsPipeline(swapChain, descriptorSet, vertShaderModule, fragShaderModule);
 }
@@ -12,8 +12,8 @@ GraphicsPipeline::GraphicsPipeline(LogicalDevice &logicalDevice, SwapChain &swap
 
 GraphicsPipeline::~GraphicsPipeline()
 {
-    vkDestroyPipeline(logicalDevice.getDevice(), graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(logicalDevice.getDevice(), pipelineLayout, nullptr);
+    vkDestroyPipeline(device.getDevice(), graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(device.getDevice(), pipelineLayout, nullptr);
 }
 
 
@@ -133,7 +133,7 @@ void GraphicsPipeline::createGraphicsPipeline(SwapChain &swapChain, VkDescriptor
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
     pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-    if (vkCreatePipelineLayout(logicalDevice.getDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(device.getDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
@@ -156,7 +156,7 @@ void GraphicsPipeline::createGraphicsPipeline(SwapChain &swapChain, VkDescriptor
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
     pipelineInfo.basePipelineIndex = -1; // Optional
 
-    if (vkCreateGraphicsPipelines(logicalDevice.getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(device.getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 }

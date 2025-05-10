@@ -10,7 +10,7 @@ class CommandBuffer
 {
 public:
     CommandBuffer();
-    CommandBuffer(LogicalDevice &logicalDevice, CommandPool &commandPool);
+    CommandBuffer(Device &device, CommandPool &commandPool);
 
     void start();
     void end();
@@ -19,6 +19,6 @@ public:
     VkCommandBuffer &getCommandBuffer() { return commandBuffer; }
 
 private:
-    LogicalDevice &logicalDevice;
+    Device &device;
     VkCommandBuffer commandBuffer;
 };

@@ -5,7 +5,7 @@
 #include "render_pass.hpp"
 
 
-RenderPass::RenderPass(LogicalDevice &logicalDevice, VkFormat &imageFormat) : logicalDevice(logicalDevice), imageFormat(imageFormat)
+RenderPass::RenderPass(Device &device, VkFormat &imageFormat) : device(device), imageFormat(imageFormat)
 {
     createRenderPass();
 }
@@ -13,7 +13,7 @@ RenderPass::RenderPass(LogicalDevice &logicalDevice, VkFormat &imageFormat) : lo
 
 RenderPass::~RenderPass()
 {
-    vkDestroyRenderPass(logicalDevice.getDevice(), renderPass, nullptr);
+    vkDestroyRenderPass(device.getDevice(), renderPass, nullptr);
 }
 
 
@@ -55,7 +55,7 @@ void RenderPass::createRenderPass() {
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
 
-    if (vkCreateRenderPass(logicalDevice.getDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+    if (vkCreateRenderPass(device.getDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
     }
 }

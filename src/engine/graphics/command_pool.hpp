@@ -11,7 +11,7 @@
 class CommandPool
 {
 public:
-    CommandPool(VmaAllocator &allocator, PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, Surface &surface);
+    CommandPool(VmaAllocator &allocator, PhysicalDevice &physicalDevice, Device &device, Surface &surface);
     ~CommandPool();
 
     VkCommandPool const getCommandPool() const { return commandPool; }
@@ -27,5 +27,5 @@ public:
 private:
     VkCommandPool commandPool;
 
-    LogicalDevice &logicalDevice;
+    Device &device;
 };

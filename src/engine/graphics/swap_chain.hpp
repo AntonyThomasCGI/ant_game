@@ -14,7 +14,7 @@
 class SwapChain
 {
 public:
-    SwapChain(Surface &surface, PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, Window &window);
+    SwapChain(Surface &surface, PhysicalDevice &physicalDevice, Device &device, Window &window);
     ~SwapChain();
 
     void cleanupSwapChain();
@@ -45,7 +45,7 @@ private:
 
     Surface &surface;
     PhysicalDevice &physicalDevice;
-    LogicalDevice &logicalDevice;
+    Device &device;
     Window &window;
 
     std::vector<VkImageView> swapChainImageViews;

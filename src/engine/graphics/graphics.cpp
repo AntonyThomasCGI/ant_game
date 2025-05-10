@@ -16,7 +16,7 @@ VulkanGraphics::VulkanGraphics(Window &window) : window(window)
     surface = std::make_unique<Surface>(*instance, window);
     physicalDevice = std::make_unique<PhysicalDevice>(*instance, *surface);
     physicalDevice->pickPhysicalDevice();
-    logicalDevice = std::make_unique<LogicalDevice>(*instance, *surface, *physicalDevice);
+    device = std::make_unique<Device>(*instance, *surface, *physicalDevice);
 
     // Create the allocator
     VmaVulkanFunctions vulkanFunctions = {};
@@ -28,20 +28,20 @@ VulkanGraphics::VulkanGraphics(Window &window) : window(window)
     allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
     allocatorCreateInfo.physicalDevice = physicalDevice->getPhysicalDevice();
 
-    allocatorCreateInfo.device = logicalDevice->getDevice();
+    allocatorCreateInfo.device = device->getDevice();
     allocatorCreateInfo.instance = instance->getInstance();
     allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
 
     vmaCreateAllocator(&allocatorCreateInfo, &allocator);
     // End creating allocator
 
-    swapChain = std::make_unique<SwapChain>(*surface, *physicalDevice, *logicalDevice, window);
-    commandPool = std::make_unique<CommandPool>(allocator, *physicalDevice, *logicalDevice, *surface);
+    swapChain = std::make_unique<SwapChain>(*surface, *physicalDevice, *device, window);
+    commandPool = std::make_unique<CommandPool>(allocator, *physicalDevice, *device, *surface);
 
     // hmm, maybe it's ok to use one set of cmd buffers / sync objects for every asset?
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        commandBuffers[i] = std::make_unique<CommandBuffer>(*logicalDevice, *commandPool);
+        commandBuffers[i] = std::make_unique<CommandBuffer>(*device, *commandPool);
     }
 
     createSyncObjects();
@@ -50,7 +50,7 @@ VulkanGraphics::VulkanGraphics(Window &window) : window(window)
 
 VulkanGraphics::~VulkanGraphics()
 {
-    vkDeviceWaitIdle(logicalDevice->getDevice());
+    vkDeviceWaitIdle(device->getDevice());
 
     for (auto const& [name, gameObj] : gameObjects) {
         delete gameObj;
@@ -62,7 +62,7 @@ VulkanGraphics::~VulkanGraphics()
 
 GameObject* VulkanGraphics::addGameObject(std::string name)
 {
-    GameObject *gameObj = new GameObject(*physicalDevice, *logicalDevice, *commandPool, *swapChain);
+    GameObject *gameObj = new GameObject(*physicalDevice, *device, *commandPool, *swapChain);
     gameObjects[name] = gameObj;
 
     return gameObj;
@@ -82,9 +82,9 @@ void VulkanGraphics::createSyncObjects() {
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkCreateSemaphore(logicalDevice->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(logicalDevice->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-            vkCreateFence(logicalDevice->getDevice(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+        if (vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+            vkCreateFence(device->getDevice(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create semaphores!");
         }
     }
@@ -92,12 +92,12 @@ void VulkanGraphics::createSyncObjects() {
 
 
 void VulkanGraphics::cleanupSyncObjects() {
-    vkDeviceWaitIdle(logicalDevice->getDevice());
+    vkDeviceWaitIdle(device->getDevice());
 
     for (size_t i = 0; i < imageAvailableSemaphores.size(); i++) {
-        vkDestroySemaphore(logicalDevice->getDevice(), imageAvailableSemaphores[i], nullptr);
-        vkDestroySemaphore(logicalDevice->getDevice(), renderFinishedSemaphores[i], nullptr);
-        vkDestroyFence(logicalDevice->getDevice(), inFlightFences[i], nullptr);
+        vkDestroySemaphore(device->getDevice(), imageAvailableSemaphores[i], nullptr);
+        vkDestroySemaphore(device->getDevice(), renderFinishedSemaphores[i], nullptr);
+        vkDestroyFence(device->getDevice(), inFlightFences[i], nullptr);
     }
 }
 
@@ -110,7 +110,7 @@ void VulkanGraphics::onResize() {
         glfwWaitEvents();
     }
 
-    vkDeviceWaitIdle(logicalDevice->getDevice());
+    vkDeviceWaitIdle(device->getDevice());
 
     cleanupSyncObjects();
     swapChain->cleanupSwapChain();
@@ -123,10 +123,10 @@ void VulkanGraphics::onResize() {
 
 void VulkanGraphics::update()
 {
-    vkWaitForFences(logicalDevice->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(device->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(logicalDevice->getDevice(), swapChain->getSwapChain(), 5e+9, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(device->getDevice(), swapChain->getSwapChain(), 5e+9, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         onResize();
         return;
@@ -138,7 +138,7 @@ void VulkanGraphics::update()
     swapChain->setCurrentImageIndex(imageIndex);
 
     // Only reset the fence if we are submitting work.
-    vkResetFences(logicalDevice->getDevice(), 1, &inFlightFences[currentFrame]);
+    vkResetFences(device->getDevice(), 1, &inFlightFences[currentFrame]);
 
     commandBuffers[currentFrame]->start();
 
@@ -179,7 +179,7 @@ void VulkanGraphics::update()
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
-    vkQueuePresentKHR(logicalDevice->getPresentQueue(), &presentInfo);
+    vkQueuePresentKHR(device->getPresentQueue(), &presentInfo);
     //**
 
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;

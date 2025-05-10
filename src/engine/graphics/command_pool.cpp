@@ -5,8 +5,8 @@
 #include "command_pool.hpp"
 
 
-CommandPool::CommandPool(VmaAllocator &allocator, PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, Surface &surface)
-    : logicalDevice(logicalDevice), allocator(allocator)
+CommandPool::CommandPool(VmaAllocator &allocator, PhysicalDevice &physicalDevice, Device &device, Surface &surface)
+    : device(device), allocator(allocator)
 {
     QueueFamilyIndices queueFamilyIndices = surface.findQueueFamilies(physicalDevice.getPhysicalDevice());
 
@@ -15,7 +15,7 @@ CommandPool::CommandPool(VmaAllocator &allocator, PhysicalDevice &physicalDevice
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-    if (vkCreateCommandPool(logicalDevice.getDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+    if (vkCreateCommandPool(device.getDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create command pool!");
     }
 }
@@ -24,7 +24,7 @@ CommandPool::CommandPool(VmaAllocator &allocator, PhysicalDevice &physicalDevice
 CommandPool::~CommandPool()
 {
 
-    vkDestroyCommandPool(logicalDevice.getDevice(), commandPool, nullptr);
+    vkDestroyCommandPool(device.getDevice(), commandPool, nullptr);
 }
 
 
@@ -38,7 +38,7 @@ VkCommandBuffer CommandPool::beginSingleTimeCommands() {
     allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(logicalDevice.getDevice(), &allocInfo, &commandBuffer);
+    vkAllocateCommandBuffers(device.getDevice(), &allocInfo, &commandBuffer);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -57,10 +57,10 @@ void CommandPool::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(logicalDevice.getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(logicalDevice.getGraphicsQueue());
+    vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(device.getGraphicsQueue());
 
-    vkFreeCommandBuffers(logicalDevice.getDevice(), commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(device.getDevice(), commandPool, 1, &commandBuffer);
 }
 
 
@@ -109,27 +109,27 @@ void CommandPool::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMe
     //VmaAllocation allocation;
     //vmaCreateBuffer(allocator, &bufferInfo, &vmaAllocInfo, &buffer, &allocation, nullptr);
 
-    if (vkCreateBuffer(logicalDevice.getDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+    if (vkCreateBuffer(device.getDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to create buffer!");
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(logicalDevice.getDevice(), buffer, &memRequirements);
+    vkGetBufferMemoryRequirements(device.getDevice(), buffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
 
-    PhysicalDevice physicalDevice = logicalDevice.getPhysicalDevice();
+    PhysicalDevice physicalDevice = device.getPhysicalDevice();
     allocInfo.memoryTypeIndex = physicalDevice.findMemoryType(memRequirements.memoryTypeBits, properties);
 
     // A "real world" application shouldn't make an individual allocate call for every buffer.
     // You would use a custom allocator that splits up a single allocation to many objects using offsets.
-    if (vkAllocateMemory(logicalDevice.getDevice(), &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(device.getDevice(), &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate buffer memory!");
     }
 
-    if (vkBindBufferMemory(logicalDevice.getDevice(), buffer, bufferMemory, 0) != VK_SUCCESS) {
+    if (vkBindBufferMemory(device.getDevice(), buffer, bufferMemory, 0) != VK_SUCCESS) {
         throw std::runtime_error("failed to bind buffer memory!");
     };
 }

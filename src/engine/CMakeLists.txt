@@ -18,14 +18,16 @@ add_library(${LIBRARY_NAME}
     graphics/command_pool.cpp
     graphics/command_pool.hpp
     graphics/constants.hpp
+    graphics/context.cpp
+    graphics/context.hpp
+    graphics/logical_device.cpp
+    graphics/logical_device.hpp
     graphics/game_object.cpp
     graphics/game_object.hpp
     graphics/graphics.cpp
     graphics/graphics.hpp
     graphics/instance.cpp
     graphics/instance.hpp
-    graphics/logical_device.cpp
-    graphics/logical_device.hpp
     graphics/material.cpp
     graphics/material.hpp
     graphics/physical_device.cpp

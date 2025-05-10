@@ -3,7 +3,7 @@
 
 #include "command_buffer.hpp"
 
-CommandBuffer::CommandBuffer(LogicalDevice &logicalDevice, CommandPool &commandPool) : logicalDevice(logicalDevice)
+CommandBuffer::CommandBuffer(Device &device, CommandPool &commandPool) : device(device)
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -11,7 +11,7 @@ CommandBuffer::CommandBuffer(LogicalDevice &logicalDevice, CommandPool &commandP
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
 
-    if (vkAllocateCommandBuffers(logicalDevice.getDevice(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(device.getDevice(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate command buffers!");
     }
 }
@@ -59,7 +59,7 @@ void CommandBuffer::submit(VkSemaphore &waitSemaphore, VkSemaphore &finishedSema
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(logicalDevice.getGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
+    if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
 }

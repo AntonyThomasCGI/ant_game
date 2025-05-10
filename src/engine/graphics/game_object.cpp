@@ -11,14 +11,14 @@ const std::string fragPath = "resources/shaders/flat_frag.spv";
 const std::string defaultSprite = "resources/textures/ant1.png";
 
 
-GameObject::GameObject(PhysicalDevice &physicalDevice, LogicalDevice &logicalDevice, CommandPool &commandPool, SwapChain &swapChain)
+GameObject::GameObject(PhysicalDevice &physicalDevice, Device &device, CommandPool &commandPool, SwapChain &swapChain)
     : physicalDevice(physicalDevice), commandPool(commandPool)
 {
-    material = new Material(logicalDevice, commandPool);
+    material = new Material(device, commandPool);
     material->setTexturePath(physicalDevice, defaultSprite);
     material->setShader(swapChain, vertPath, fragPath);
 
-    mesh = std::make_unique<Square>(&logicalDevice);
+    mesh = std::make_unique<Square>(&device);
     mesh->createBuffers(commandPool);
 }
 

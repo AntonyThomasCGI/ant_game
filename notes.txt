@@ -1,0 +1,16 @@
+
+
+
+Graphics(Window)
+
+    GraphicsContext()
+        Instance
+        Surface
+        PhysicalDevice
+        Device
+
+    
+    ctx.physicalDevice.getDevice()
+
+
+
