@@ -3,6 +3,8 @@
 
 #include <vk_mem_alloc.h>
 
+#include <memory>
+
 #include "command_buffer.hpp"
 #include "command_pool.hpp"
 #include "shader.hpp"
@@ -20,16 +22,25 @@ public:
     void setTexturePath(std::string texturePath);
 
     void bind(CommandBuffer &commandBuffer, uint32_t currentFrame);
+    void bindDescriptorSetsWithOffset(CommandBuffer & commandBuffer, uint32_t currentFrame, uint32_t meshN);
 
-    void updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain);
+    void updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain, size_t meshN);
 
     void cleanupDescriptorPool();
     void createDescriptorSets();
     void createDescriptorPool();
 
+    const size_t getMaxMeshCount() { return maxMeshCount; }
+    void setMaxMeshCount(size_t newValue);
+
+    const std::string getCurrentTexturePath() { return currentTexturePath; }
+
+
 private:
     GraphicsContext &ctx;
     CommandPool &commandPool;
+
+    std::string currentTexturePath;
 
     GraphicsPipeline *graphicsPipeline;
     std::unique_ptr<Shader> shader;
@@ -46,4 +57,7 @@ private:
 
     void createUniformBuffers();
     void createDescriptorSetLayout();
+
+    size_t maxMeshCount = 100;
+    VkDeviceSize alignedUboSize;
 };

@@ -36,6 +36,8 @@ add_library(${LIBRARY_NAME}
     graphics/pipeline.hpp
     graphics/render_pass.cpp
     graphics/render_pass.hpp
+    graphics/resource_manager.cpp
+    graphics/resource_manager.hpp
     graphics/shader.cpp
     graphics/shader.hpp
     graphics/surface.cpp
@@ -46,8 +48,8 @@ add_library(${LIBRARY_NAME}
     graphics/texture.hpp
     renderers/sprite_renderer.cpp
     renderers/sprite_renderer.hpp
-    resources/resource_manager.cpp
-    resources/resource_manager.hpp
+    #resources/resource_manager.cpp
+    #resources/resource_manager.hpp
 )
 
 include_directories(

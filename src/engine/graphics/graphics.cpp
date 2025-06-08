@@ -7,6 +7,12 @@
 
 #include "constants.hpp"
 #include "graphics.hpp"
+#include "resource_manager.hpp"
+
+
+// TODO, specific to sprite shader, should probably put this there somewhere
+const std::string vertPath = "resources/shaders/flat_vert.spv";
+const std::string fragPath = "resources/shaders/flat_frag.spv";
 
 
 VulkanGraphics::VulkanGraphics(Window &window)
@@ -16,6 +22,11 @@ VulkanGraphics::VulkanGraphics(Window &window)
 
     swapChain = std::make_unique<SwapChain>(*ctx);
     commandPool = std::make_unique<CommandPool>(*ctx);
+
+    // hack
+    //ResourceManager::createTexture(*ctx, *commandPool, "resources/textures/ant1.png");
+    //ResourceManager::createTexture(*ctx, *commandPool, "resources/textures/ant2.png");
+    //ResourceManager::createTexture(*ctx, *commandPool, "resources/textures/dirt.png");
 
     // hmm, maybe it's ok to use one set of cmd buffers / sync objects for every asset?
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -31,19 +42,32 @@ VulkanGraphics::~VulkanGraphics()
 {
     vkDeviceWaitIdle(ctx->device->getDevice());
 
-    for (auto const& [name, gameObj] : gameObjects) {
+    for (auto const& gameObj : gameObjects) {
         delete gameObj;
     }
     cleanupSyncObjects();
 }
 
 
-GameObject* VulkanGraphics::addGameObject(std::string name)
+GameObject* VulkanGraphics::addGameObject()
 {
     GameObject *gameObj = new GameObject(*ctx, *commandPool, *swapChain);
-    gameObjects[name] = gameObj;
+    gameObjects.push_back(gameObj);
 
     return gameObj;
+}
+
+
+Material* VulkanGraphics::createSpriteMaterial(std::string texturePath)
+{
+
+    Material* material = new Material(*ctx, *commandPool);
+
+    material->setTexturePath(texturePath);
+
+    material->setShader(*swapChain, vertPath, fragPath);
+
+    return material;
 }
 
 
@@ -133,8 +157,19 @@ void VulkanGraphics::update()
 
     vkCmdBeginRenderPass(commandBuffers[currentFrame]->getCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    for (const auto& [gameObjName, gameObj] : gameObjects) {
-        gameObj->draw(*commandBuffers[currentFrame].get(), *swapChain, currentFrame);
+    std::string currentTexture = "";
+    size_t count = 0;
+    // FIXME, sort game objects by material. Right now they just happen to be in correct order.
+    for (const auto gameObj : gameObjects) {
+        std::string thisTexture = gameObj->material->getCurrentTexturePath();
+        if (thisTexture != currentTexture) {
+            count = 0;
+
+            gameObj->material->bind(*commandBuffers[currentFrame].get(), currentFrame);
+            currentTexture = thisTexture;
+        }
+        gameObj->draw(*commandBuffers[currentFrame].get(), *swapChain, currentFrame, count);
+        count++;
     }
 
     vkCmdEndRenderPass(commandBuffers[currentFrame]->getCommandBuffer());

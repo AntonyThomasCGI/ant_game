@@ -27,7 +27,8 @@ public:
     VulkanGraphics(Window &window);
     ~VulkanGraphics();
 
-    GameObject* addGameObject(std::string name);
+    GameObject* addGameObject();
+    Material* createSpriteMaterial(std::string texturePath);
 
     void update();
 
@@ -40,7 +41,7 @@ private:
     std::unique_ptr<CommandPool> commandPool;
     std::unique_ptr<Material> material;
 
-    std::map<std::string, GameObject*> gameObjects;
+    std::vector<GameObject*> gameObjects;
 
     std::vector<std::unique_ptr<CommandBuffer>> commandBuffers;
 
