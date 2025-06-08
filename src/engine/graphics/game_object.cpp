@@ -12,11 +12,11 @@ const std::string defaultSprite = "resources/textures/ant1.png";
 
 
 GameObject::GameObject(GraphicsContext &ctx, CommandPool &commandPool, SwapChain &swapChain)
-    : ctx(ctx), commandPool(commandPool)
+    : ctx(ctx)
 {
-    material = new Material(ctx, commandPool);
-    material->setTexturePath(defaultSprite);
-    material->setShader(swapChain, vertPath, fragPath);
+    //material = new Material(ctx, commandPool);
+    //material->setTexturePath(defaultSprite);
+    //material->setShader(swapChain, vertPath, fragPath);
 
     mesh = std::make_unique<Square>(ctx);
     mesh->createBuffers(commandPool);
@@ -29,10 +29,16 @@ GameObject::~GameObject()
 }
 
 
+void GameObject::setMaterial(Material *mat)
+{
+    material = mat;
+}
+
+
 void GameObject::setSpritePath(std::string texturePath)
 {
-    // TODO
-    material->cleanupDescriptorPool();
+    // TODO, conditionally need to cleanup i think
+    //material->cleanupDescriptorPool();
     material->setTexturePath(texturePath);
     material->createDescriptorPool();
     material->createDescriptorSets();
@@ -46,10 +52,10 @@ void GameObject::move(glm::vec2 trans, float rot)
     rotate += rot;
 }
 
-
-void GameObject::draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame)
+void GameObject::draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame, size_t meshN = 0)
 {
-    material->bind(commandBuffer, currentFrame);
+    //material->bind(commandBuffer, currentFrame);
+    material->bindDescriptorSetsWithOffset(commandBuffer, currentFrame, meshN);
 
     glm::mat4 transform{1.0f};
     //ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -58,7 +64,7 @@ void GameObject::draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32
     transform = glm::rotate(transform, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f));
     transform = glm::scale(transform, glm::vec3(scale, 1.0f));
 
-    material->updateUniformBuffer(transform, color, currentFrame, swapChain);
+    material->updateUniformBuffer(transform, color, currentFrame, swapChain, meshN);
 
     mesh->draw(commandBuffer, swapChain);
 }

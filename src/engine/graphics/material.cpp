@@ -6,8 +6,9 @@
 
 #include <array>
 
-#include "material.hpp"
 #include "constants.hpp"
+#include "material.hpp"
+#include "resource_manager.hpp"
 
 
 struct UniformBufferObject {
@@ -52,7 +53,26 @@ void Material::bind(CommandBuffer &commandBuffer, uint32_t currentFrame)
 }
 
 
-void Material::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain)
+void Material::bindDescriptorSetsWithOffset(CommandBuffer & commandBuffer, uint32_t currentFrame, uint32_t meshN)
+{
+    VkDeviceSize offset = meshN * alignedUboSize;
+    vkCmdBindDescriptorSets(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(), 0, 1, &descriptorSets[currentFrame], 1, (uint32_t*)&offset);
+}
+
+void Material::setMaxMeshCount(size_t newValue)
+{
+    maxMeshCount = newValue;
+
+    vkDestroyShaderModule(ctx.device->getDevice(), shader->vertShaderModule, nullptr);
+    vkDestroyShaderModule(ctx.device->getDevice(), shader->fragShaderModule, nullptr);
+
+    createUniformBuffers();
+    createDescriptorPool();
+    createDescriptorSets();
+}
+
+
+void Material::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain, size_t meshN)
 {
     UniformBufferObject ubo{};
 
@@ -86,7 +106,7 @@ void Material::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_
 
     ubo.color = color;
 
-    memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
+    memcpy((char*)uniformBuffersMapped[currentFrame] + meshN * alignedUboSize, &ubo, sizeof(ubo));
 }
 
 
@@ -112,7 +132,8 @@ void Material::createDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    //uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     uboLayoutBinding.descriptorCount = 1;
 
     // --The descriptor is only referenced in the vertex shader--
@@ -147,7 +168,7 @@ void Material::createDescriptorPool()
     //};
 
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
-    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
@@ -156,8 +177,6 @@ void Material::createDescriptorPool()
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
     poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
     if (vkCreateDescriptorPool(ctx.device->getDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
@@ -177,6 +196,7 @@ void Material::createDescriptorSets()
 
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
     VkResult result = vkAllocateDescriptorSets(ctx.device->getDevice(), &allocInfo, descriptorSets.data());
+
     if (result != VK_SUCCESS) {
         std::cout << "Got result: " << string_VkResult(result) << std::endl;;
         throw std::runtime_error("failed to allocate descriptor sets!");
@@ -198,26 +218,40 @@ void Material::createDescriptorSets()
         descriptorWrites[0].dstSet = descriptorSets[i];
         descriptorWrites[0].dstBinding = 0;
         descriptorWrites[0].dstArrayElement = 0;
-        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        //descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
         descriptorWrites[0].descriptorCount = 1;
         descriptorWrites[0].pBufferInfo = &bufferInfo;
 
         descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[1].dstSet = descriptorSets[i];
         descriptorWrites[1].dstBinding = 1;
-        descriptorWrites[1].dstArrayElement = 0;
+        //descriptorWrites[1].dstArrayElement = 0;
         descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descriptorWrites[1].descriptorCount = 1;
         descriptorWrites[1].pImageInfo = &imageInfo;
 
         vkUpdateDescriptorSets(ctx.device->getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
+
 }
 
 
 void Material::createUniformBuffers()
 {
-    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+    VkPhysicalDeviceProperties properties{};
+    // Could store these props on physical device at program start instead.
+    vkGetPhysicalDeviceProperties(ctx.physicalDevice->getPhysicalDevice(), &properties);
+    VkDeviceSize minAlignment = properties.limits.minUniformBufferOffsetAlignment;
+
+    VkDeviceSize uboSize = sizeof(UniformBufferObject);
+
+    auto alignedSize = [](size_t value, size_t alignment) {
+        return (value + alignment - 1) & ~(alignment - 1);
+    };
+
+    alignedUboSize = alignedSize(uboSize, minAlignment);
+    VkDeviceSize bufferSize = alignedUboSize * maxMeshCount;
 
     uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
     uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -237,5 +271,8 @@ void Material::createUniformBuffers()
 
 void Material::setTexturePath(std::string texturePath)
 {
+
+    currentTexturePath = texturePath;
+    //textureImage = ResourceManager::getTexture(texturePath);
     textureImage = std::make_unique<TextureImage>(ctx, commandPool, texturePath);
 }

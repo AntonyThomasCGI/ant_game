@@ -19,19 +19,18 @@
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
 
-<<<<<<< HEAD
-=======
-//const unsigned int GRID_WIDTH = WIDTH / 100;
-//const unsigned int GRID_HEIGHT = HEIGHT / 100;
->>>>>>> 823d13e (apply random grid colors to and path)
-const unsigned int GRID_WIDTH = WIDTH / 40;
-const unsigned int GRID_HEIGHT = HEIGHT / 40;
+const unsigned int GRID_WIDTH = WIDTH / 10;
+const unsigned int GRID_HEIGHT = HEIGHT / 10;
+
+
+//const std::string antSprite = "resources/textures/ant1.png";
+const std::string dirtSprite = "resources/textures/dirt.png";
 
 
 class Grid
 {
 public:
-const float tileWidth = 40.0;
+    const float tileWidth = 10.0;
 
     Grid(Engine *engine) {
 
@@ -40,16 +39,20 @@ const float tileWidth = 40.0;
 
         std::cout << "Building grid (" << GRID_WIDTH << ", " << GRID_HEIGHT << ")" << std::endl;
 
+        tileMat = engine->graphics->createSpriteMaterial(dirtSprite);
+        tileMat->setMaxMeshCount(10000);
+
         std::random_device dev;
         std::mt19937 rng(dev());
         std::uniform_int_distribution<std::mt19937::result_type> dist10(1,15);
 
         for (int i = 0; i < GRID_HEIGHT; i++ ) {
             for (int j = 0; j < GRID_WIDTH; j++ ) {
-                std::stringstream s;
-                s << "tile_" << std::to_string(i) << "_" << std::to_string(j);
-                grid[i][j] = engine->graphics->addGameObject(s.str());
-                grid[i][j]->setSpritePath("resources/textures/dirt.png");
+                //std::stringstream s;
+                //s << "tile_" << std::to_string(i) << "_" << std::to_string(j);
+                grid[i][j] = engine->graphics->addGameObject();
+                grid[i][j]->setMaterial(tileMat);
+                //grid[i][j]->setSpritePath(dirtSprite);
 
                 float yPos = i * tileWidth - halfHeight;
                 float xPos = j * tileWidth - halfWidth;
@@ -76,8 +79,13 @@ const float tileWidth = 40.0;
         return grid[scaledY][scaledX];
     }
 
+    ~Grid() {
+        delete tileMat;
+    }
+
 private:
     GameObject* grid[GRID_HEIGHT][GRID_WIDTH];
+    Material *tileMat;
 };
 
 
@@ -89,25 +97,32 @@ public:
 
     App(unsigned int width, unsigned int height, int argc, char **argv) : AppBase(width, height, argc, argv)
     {
-        grid = std::make_unique<Grid>(engine);
-        ant1 = engine->graphics->addGameObject("z");
-        ant2 = engine->graphics->addGameObject("z1");
 
-        ant1->setSpritePath("resources/textures/ant1.png");
-        ant2->setSpritePath("resources/textures/ant2.png");
+        grid = std::make_unique<Grid>(engine);
+
+        ant1 = engine->graphics->addGameObject();
+        ant2 = engine->graphics->addGameObject();
+
+        ant1Mat = engine->graphics->createSpriteMaterial("resources/textures/ant1.png");
+        ant2Mat = engine->graphics->createSpriteMaterial("resources/textures/ant2.png");
+
+        ant1->setMaterial(ant1Mat);
+        ant2->setMaterial(ant2Mat);
     }
 
     ~App()
     {
+        delete ant1Mat;
+        delete ant2Mat;
     }
 
     void update(float deltaTime) {
         ant2->move(glm::vec2(0.0f), 200.0f * deltaTime);
-        //std::cout << glm::to_string(ant1->translate) << std::endl;
-        GameObject* square = grid->gameObjectAt(ant1->translate.y, ant1->translate.x);
 
-        glm::vec3 randColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
-        square->color = randColor;
+        //GameObject* square = grid->gameObjectAt(ant1->translate.y, ant1->translate.x);
+
+        //glm::vec3 randColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
+        //square->color = randColor;
     }
 
     void processInput(float deltaTime) {
@@ -152,6 +167,8 @@ public:
 private:
     GameObject* ant1;
     GameObject* ant2;
+    Material *ant1Mat;
+    Material *ant2Mat;
     std::unique_ptr<Grid> grid;
 };
 

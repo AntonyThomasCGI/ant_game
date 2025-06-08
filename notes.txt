@@ -1,16 +1,16 @@
 
 
 
-Graphics(Window)
+Goal: decouple Material from GameObject
 
-    GraphicsContext()
-        Instance
-        Surface
-        PhysicalDevice
-        Device
+> So I think the issue currently is the mapped memory
+  for the uniformBuffers on the Material. We need mapped
+  memory per object.
 
-    
-    ctx.physicalDevice.getDevice()
+  It's possible to pass an offset to vkCmdBindDescriptorSets.
+
+  Maybe material could keep a reference count, and define offset
+  on the game object it's getting used for?
 
 
 

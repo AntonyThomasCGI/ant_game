@@ -14,6 +14,7 @@
 #include "swap_chain.hpp"
 
 
+
 class GameObject
 {
 public:
@@ -22,6 +23,9 @@ public:
     ~GameObject();
 
     void move(glm::vec2 trans, float rot);
+
+    void setMaterial(Material *mat);
+
     void setSpritePath(std::string texturePath);
 
     glm::vec2 translate = glm::vec2(0.0f, 0.0f);
@@ -29,13 +33,12 @@ public:
     glm::vec2 scale = glm::vec3(100.0f);
     glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 
-    void draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame);
+    void draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame, size_t meshN);
+
+    Material *material;
 
 private:
     GraphicsContext &ctx;
 
-    CommandPool &commandPool;
-
-    Material *material;
     std::unique_ptr<Square> mesh;
 };
