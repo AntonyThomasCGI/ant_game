@@ -19,23 +19,47 @@ struct UniformBufferObject {
 };
 
 
-Material::Material(GraphicsContext &ctx, CommandPool &commandPool)
-    : ctx(ctx), commandPool(commandPool)
-{ }
+Material::Material(GraphicsContext &ctx, CommandPool &commandPool, SwapChain &swapChain)
+    : ctx(ctx), commandPool(commandPool), swapChain(swapChain)
+{
+    VkPhysicalDeviceProperties properties{};
+    // Could store these props on physical device at program start instead.
+    vkGetPhysicalDeviceProperties(ctx.physicalDevice->getPhysicalDevice(), &properties);
+    VkDeviceSize minAlignment = properties.limits.minUniformBufferOffsetAlignment;
+
+    VkDeviceSize uboSize = sizeof(UniformBufferObject);
+
+    auto alignedSize = [](size_t value, size_t alignment) {
+        return (value + alignment - 1) & ~(alignment - 1);
+    };
+
+    alignedUboSize = alignedSize(uboSize, minAlignment);
+}
 
 
 Material::~Material()
 {
-    delete graphicsPipeline;
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        //vkDestroyBuffer(device.getDevice(), uniformBuffers[i], nullptr);
-        //vkFreeMemory(device.getDevice(), uniformBuffersMemory[i], nullptr);
-        vmaUnmapMemory(ctx.allocator, uniformBuffersMemory[i]);
-        vmaDestroyBuffer(ctx.allocator, uniformBuffers[i], uniformBuffersMemory[i]);
+    if (uniformBuffersMapped.size()) {
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            //vmaFreeMemory(ctx.allocator, uniformBuffersMemory[i]);
+
+            if (uniformBuffersMapped[i]) {
+                vmaUnmapMemory(ctx.allocator, uniformBuffersMemory[i]);
+            }
+
+
+            vmaDestroyBuffer(ctx.allocator, uniformBuffers[i], uniformBuffersMemory[i]);
+        }
     }
-    vkDestroyDescriptorPool(ctx.device->getDevice(), descriptorPool, nullptr);
-    vkDestroyDescriptorSetLayout(ctx.device->getDevice(), descriptorSetLayout, nullptr);
+    if (descriptorPool != VK_NULL_HANDLE) {
+        vkDestroyDescriptorPool(ctx.device->getDevice(), descriptorPool, nullptr);
+    }
+    if (descriptorSetLayout) {
+        vkDestroyDescriptorSetLayout(ctx.device->getDevice(), descriptorSetLayout, nullptr);
+    }
+
+    delete graphicsPipeline;
 }
 
 
@@ -45,23 +69,54 @@ void Material::cleanupDescriptorPool()
 }
 
 
-void Material::bind(CommandBuffer &commandBuffer, uint32_t currentFrame)
+void Material::bindPipeline(CommandBuffer &commandBuffer, uint32_t currentFrame)
 {
     vkCmdBindPipeline(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipeline());
 
-    vkCmdBindDescriptorSets(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(), 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+    //vkCmdBindDescriptorSets(
+    //    commandBuffer.getCommandBuffer(),
+    //    VK_PIPELINE_BIND_POINT_GRAPHICS,
+    //    graphicsPipeline->getPipelineLayout(),
+    //    0,
+    //    1,
+    //    &descriptorSets[currentFrame],
+    //    0,
+    //    nullptr
+    //);
 }
 
 
 void Material::bindDescriptorSetsWithOffset(CommandBuffer & commandBuffer, uint32_t currentFrame, uint32_t meshN)
 {
-    VkDeviceSize offset = meshN * alignedUboSize;
-    vkCmdBindDescriptorSets(commandBuffer.getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(), 0, 1, &descriptorSets[currentFrame], 1, (uint32_t*)&offset);
+    uint32_t offset = meshN * alignedUboSize;
+    //uint32_t offsets[] = { offset };
+    std::array<uint32_t, 1> offsets = { offset };
+    vkCmdBindDescriptorSets(
+        commandBuffer.getCommandBuffer(),
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        graphicsPipeline->getPipelineLayout(),
+        0,
+        1,
+        &descriptorSets[currentFrame],
+        1,
+        offsets.data()
+    );
 }
 
 void Material::setMaxMeshCount(size_t newValue)
 {
+    delete graphicsPipeline;
+
     maxMeshCount = newValue;
+
+    // Recreate shaders
+
+    cleanupDescriptorPool();
+
+    createDescriptorSetLayout();
+
+    shader = std::make_unique<Shader>(*ctx.device, shader->getVertShaderPath(), shader->getFragShaderPath());
+    graphicsPipeline = new GraphicsPipeline(*ctx.device, swapChain, descriptorSetLayout, shader->vertShaderModule, shader->fragShaderModule);
 
     vkDestroyShaderModule(ctx.device->getDevice(), shader->vertShaderModule, nullptr);
     vkDestroyShaderModule(ctx.device->getDevice(), shader->fragShaderModule, nullptr);
@@ -72,7 +127,7 @@ void Material::setMaxMeshCount(size_t newValue)
 }
 
 
-void Material::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain, size_t meshN)
+void Material::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, size_t meshN)
 {
     UniformBufferObject ubo{};
 
@@ -206,7 +261,7 @@ void Material::createDescriptorSets()
         VkDescriptorBufferInfo bufferInfo{};
         bufferInfo.buffer = uniformBuffers[i];
         bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(UniformBufferObject);
+        bufferInfo.range = alignedUboSize;
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -226,7 +281,7 @@ void Material::createDescriptorSets()
         descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[1].dstSet = descriptorSets[i];
         descriptorWrites[1].dstBinding = 1;
-        //descriptorWrites[1].dstArrayElement = 0;
+        descriptorWrites[1].dstArrayElement = 0;
         descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descriptorWrites[1].descriptorCount = 1;
         descriptorWrites[1].pImageInfo = &imageInfo;
@@ -239,18 +294,6 @@ void Material::createDescriptorSets()
 
 void Material::createUniformBuffers()
 {
-    VkPhysicalDeviceProperties properties{};
-    // Could store these props on physical device at program start instead.
-    vkGetPhysicalDeviceProperties(ctx.physicalDevice->getPhysicalDevice(), &properties);
-    VkDeviceSize minAlignment = properties.limits.minUniformBufferOffsetAlignment;
-
-    VkDeviceSize uboSize = sizeof(UniformBufferObject);
-
-    auto alignedSize = [](size_t value, size_t alignment) {
-        return (value + alignment - 1) & ~(alignment - 1);
-    };
-
-    alignedUboSize = alignedSize(uboSize, minAlignment);
     VkDeviceSize bufferSize = alignedUboSize * maxMeshCount;
 
     uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);

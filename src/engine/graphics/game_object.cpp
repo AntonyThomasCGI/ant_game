@@ -25,7 +25,6 @@ GameObject::GameObject(GraphicsContext &ctx, CommandPool &commandPool, SwapChain
 
 GameObject::~GameObject()
 {
-    delete material;
 }
 
 
@@ -54,17 +53,15 @@ void GameObject::move(glm::vec2 trans, float rot)
 
 void GameObject::draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame, size_t meshN = 0)
 {
-    //material->bind(commandBuffer, currentFrame);
     material->bindDescriptorSetsWithOffset(commandBuffer, currentFrame, meshN);
 
     glm::mat4 transform{1.0f};
-    //ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
     transform = glm::translate(transform, glm::vec3(translate, 0.0f));
     transform = glm::rotate(transform, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f));
-    transform = glm::scale(transform, glm::vec3(scale, 1.0f));
+    transform = glm::scale(transform, glm::vec3(baseSize * scale, 1.0f));
 
-    material->updateUniformBuffer(transform, color, currentFrame, swapChain, meshN);
+    material->updateUniformBuffer(transform, color, currentFrame, meshN);
 
     mesh->draw(commandBuffer, swapChain);
 }

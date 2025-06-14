@@ -19,8 +19,8 @@
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
 
-const unsigned int GRID_WIDTH = WIDTH / 10;
-const unsigned int GRID_HEIGHT = HEIGHT / 10;
+const unsigned int GRID_WIDTH = WIDTH / 20;
+const unsigned int GRID_HEIGHT = HEIGHT / 20;
 
 
 //const std::string antSprite = "resources/textures/ant1.png";
@@ -30,7 +30,7 @@ const std::string dirtSprite = "resources/textures/dirt.png";
 class Grid
 {
 public:
-    const float tileWidth = 10.0;
+    const float tileWidth = 20.0;
 
     Grid(Engine *engine) {
 
@@ -58,7 +58,7 @@ public:
                 float xPos = j * tileWidth - halfWidth;
 
                 grid[i][j]->translate = glm::vec2(xPos, yPos);
-                grid[i][j]->scale = glm::vec2(tileWidth);
+                grid[i][j]->baseSize = glm::vec2(tileWidth);
             }
         }
     }
@@ -102,6 +102,9 @@ public:
 
         ant1->setMaterial(ant1Mat);
         ant2->setMaterial(ant2Mat);
+
+        ant1->baseSize = glm::vec2(50.0f);
+        ant2->baseSize = glm::vec2(50.0f);
     }
 
     ~App()

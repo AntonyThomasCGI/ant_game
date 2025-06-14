@@ -28,9 +28,10 @@ public:
 
     void setSpritePath(std::string texturePath);
 
+    glm::vec2 baseSize = glm::vec2(100.0f);
     glm::vec2 translate = glm::vec2(0.0f, 0.0f);
     float rotate = 0.0f;
-    glm::vec2 scale = glm::vec3(100.0f);
+    glm::vec2 scale = glm::vec2(1.0f);
     glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     void draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame, size_t meshN);

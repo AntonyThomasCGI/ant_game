@@ -14,17 +14,17 @@
 class Material
 {
 public:
-    Material(GraphicsContext &ctx, CommandPool &commandPool);
+    Material(GraphicsContext &ctx, CommandPool &commandPool, SwapChain &swapChain);
     //Material(std::string vertShader, std::string fragShader, std::string texturePath);
     ~Material();
 
     void setShader(SwapChain &swapChain, std::string vertShader, std::string fragShader);
     void setTexturePath(std::string texturePath);
 
-    void bind(CommandBuffer &commandBuffer, uint32_t currentFrame);
+    void bindPipeline(CommandBuffer &commandBuffer, uint32_t currentFrame);
     void bindDescriptorSetsWithOffset(CommandBuffer & commandBuffer, uint32_t currentFrame, uint32_t meshN);
 
-    void updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain, size_t meshN);
+    void updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, size_t meshN);
 
     void cleanupDescriptorPool();
     void createDescriptorSets();
@@ -39,6 +39,7 @@ public:
 private:
     GraphicsContext &ctx;
     CommandPool &commandPool;
+    SwapChain &swapChain;
 
     std::string currentTexturePath;
 
@@ -58,6 +59,6 @@ private:
     void createUniformBuffers();
     void createDescriptorSetLayout();
 
-    size_t maxMeshCount = 100;
+    size_t maxMeshCount = 10;
     VkDeviceSize alignedUboSize;
 };

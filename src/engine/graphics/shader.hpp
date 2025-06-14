@@ -30,8 +30,14 @@ public:
     VkShaderModule vertShaderModule;
     VkShaderModule fragShaderModule;
 
+    const std::string getVertShaderPath() { return vertShaderPath; }
+    const std::string getFragShaderPath() { return fragShaderPath; }
+
 private:
     Device &device;
+
+    std::string vertShaderPath;
+    std::string fragShaderPath;
 
     //VkDescriptorSetLayout descriptorSetLayout;
 
