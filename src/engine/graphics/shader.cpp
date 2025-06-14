@@ -25,7 +25,7 @@ static std::vector<char> readFile(const std::string& filename) {
 }
 
 Shader::Shader(Device &device, std::string vertShader, std::string fragShader)
-    : device(device)
+    : device(device), vertShaderPath(vertShader), fragShaderPath(fragShader)
 {
     auto vertShaderCode = readFile(vertShader);
     auto fragShaderCode = readFile(fragShader);

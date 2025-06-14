@@ -40,6 +40,7 @@ VulkanGraphics::VulkanGraphics(Window &window)
 
 VulkanGraphics::~VulkanGraphics()
 {
+    vkWaitForFences(ctx->device->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkDeviceWaitIdle(ctx->device->getDevice());
 
     for (auto const& gameObj : gameObjects) {
@@ -61,7 +62,7 @@ GameObject* VulkanGraphics::addGameObject()
 Material* VulkanGraphics::createSpriteMaterial(std::string texturePath)
 {
 
-    Material* material = new Material(*ctx, *commandPool);
+    Material* material = new Material(*ctx, *commandPool, *swapChain);
 
     material->setTexturePath(texturePath);
 
@@ -165,7 +166,7 @@ void VulkanGraphics::update()
         if (thisTexture != currentTexture) {
             count = 0;
 
-            gameObj->material->bind(*commandBuffers[currentFrame].get(), currentFrame);
+            gameObj->material->bindPipeline(*commandBuffers[currentFrame].get(), currentFrame);
             currentTexture = thisTexture;
         }
         gameObj->draw(*commandBuffers[currentFrame].get(), *swapChain, currentFrame, count);
