@@ -24,13 +24,14 @@ TextureImage* ResourceManager::getTexture(std::string texturePath)
 }
 
 
-Shader ResourceManager::createShader()
-{
+//Shader ResourceManager::createShader()
+//{
+//
+//
+//}
 
-}
 
-
-Shader ResourceManager::getShader()
-{
-
-}
+//Shader ResourceManager::getShader()
+//{
+//
+//}

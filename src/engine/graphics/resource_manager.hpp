@@ -18,9 +18,9 @@ class ResourceManager
 
         static TextureImage* getTexture(std::string texturePath);
 
-        static Shader createShader();
+        //static Shader createShader();
 
-        static Shader getShader();
+        //static Shader getShader();
 
     private:
         // Singleton

@@ -101,6 +101,7 @@ public:
         //ant2Mat = engine->graphics->createSpriteMaterial("resources/textures/ant2.png");
 
         ant1->setMaterial(ant1Mat);
+        ant1->baseSize = glm::vec2(100.0f);
         //ant2->setMaterial(ant2Mat);
 
         ant1leg = engine->graphics->addGameObject();
@@ -138,7 +139,6 @@ public:
         ant3leg->parentObject = ant1;
         ant4leg->parentObject = ant1;
 
-        ant1->baseSize = glm::vec2(100.0f);
         //ant2->baseSize = glm::vec2(50.0f);
     }
 

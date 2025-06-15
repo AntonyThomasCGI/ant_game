@@ -28,7 +28,7 @@ public:
 
     void setSpritePath(std::string texturePath);
 
-    GameObject *parentObject;
+    GameObject *parentObject = nullptr;
 
     glm::mat4 getTransform();
 
