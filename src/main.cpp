@@ -23,7 +23,6 @@ const unsigned int GRID_WIDTH = WIDTH / 20;
 const unsigned int GRID_HEIGHT = HEIGHT / 20;
 
 
-//const std::string antSprite = "resources/textures/ant1.png";
 const std::string dirtSprite = "resources/textures/dirt.png";
 
 
@@ -105,26 +104,71 @@ public:
         grid = std::make_unique<Grid>(engine);
 
         ant1 = engine->graphics->addGameObject();
-        ant2 = engine->graphics->addGameObject();
+        //ant2 = engine->graphics->addGameObject();
 
-        ant1Mat = engine->graphics->createSpriteMaterial("resources/textures/ant1.png");
-        ant2Mat = engine->graphics->createSpriteMaterial("resources/textures/ant2.png");
+
+        ant1Mat = engine->graphics->createSpriteMaterial("resources/textures/ant1_no_leg.png");
+        //ant2Mat = engine->graphics->createSpriteMaterial("resources/textures/ant2.png");
 
         ant1->setMaterial(ant1Mat);
-        ant2->setMaterial(ant2Mat);
+        //ant2->setMaterial(ant2Mat);
 
-        ant1->baseSize = glm::vec2(50.0f);
-        ant2->baseSize = glm::vec2(50.0f);
+        ant1leg = engine->graphics->addGameObject();
+        ant2leg = engine->graphics->addGameObject();
+        ant3leg = engine->graphics->addGameObject();
+        ant4leg = engine->graphics->addGameObject();
+        ant1legMat = engine->graphics->createSpriteMaterial("resources/textures/ant1_leg.png");
+        ant1leg->setMaterial(ant1legMat);
+        ant2leg->setMaterial(ant1legMat);
+        ant3leg->setMaterial(ant1legMat);
+        ant4leg->setMaterial(ant1legMat);
+
+        ant1leg->baseSize = glm::vec2(0.5f);
+        ant1leg->rotatePivot = glm::vec2(0.0f, 0.25f);
+
+        ant2leg->baseSize = glm::vec2(0.5f);
+        ant2leg->rotatePivot = glm::vec2(0.0f, 0.25f);
+
+        ant3leg->baseSize = glm::vec2(0.5f);
+        ant3leg->rotatePivot = glm::vec2(0.0f, -0.25f);
+
+        ant4leg->baseSize = glm::vec2(0.5f);
+        ant4leg->rotatePivot = glm::vec2(0.0f, -0.25f);
+
+        ant1leg->translate = glm::vec2(0.0f, -0.2f);
+        ant2leg->translate = glm::vec2(0.0f, -0.3f);
+        ant3leg->translate = glm::vec2(0.0f, +0.3f);
+        ant4leg->translate = glm::vec2(0.0f, +0.3f);
+
+        ant3leg->scale = glm::vec2(-1.0f);
+        ant4leg->scale = glm::vec2(-1.0f);
+
+        ant1leg->parentObject = ant1;
+        ant2leg->parentObject = ant1;
+        ant3leg->parentObject = ant1;
+        ant4leg->parentObject = ant1;
+
+        ant1->baseSize = glm::vec2(100.0f);
+        //ant2->baseSize = glm::vec2(50.0f);
     }
 
     ~App()
     {
         delete ant1Mat;
-        delete ant2Mat;
+        //delete ant2Mat;
+        delete ant1legMat;
+        delete ant1leg;
+        delete ant2leg;
+        delete ant3leg;
+        delete ant4leg;
     }
 
     void update(float deltaTime) {
-        ant2->move(glm::vec2(0.0f), 200.0f * deltaTime);
+        //ant2->move(glm::vec2(0.0f), 200.0f * deltaTime);
+        ant1leg->rotate = glm::sin(glfwGetTime() * 5.0f) * 45.0f + 90.0f;
+        ant2leg->rotate = glm::cos(glfwGetTime() * 5.0f) * 45.0f + 90.0f;
+        ant3leg->rotate = glm::cos(glfwGetTime() * 5.0f) * 45.0f + 90.0f;
+        ant4leg->rotate = glm::sin(glfwGetTime() * 5.0f) * 45.0f + 90.0f;
 
         //GameObject* square = grid->gameObjectAt(ant1->translate.y, ant1->translate.x);
 
@@ -173,9 +217,14 @@ public:
 
 private:
     GameObject* ant1;
-    GameObject* ant2;
+    //GameObject* ant2;
+    GameObject* ant1leg;
+    GameObject* ant2leg;
+    GameObject* ant3leg;
+    GameObject* ant4leg;
     Material *ant1Mat;
-    Material *ant2Mat;
+    //Material *ant2Mat;
+    Material *ant1legMat;
     std::unique_ptr<Grid> grid;
 };
 
