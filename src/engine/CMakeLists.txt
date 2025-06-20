@@ -3,8 +3,13 @@ set(LIBRARY_NAME engine)
 find_package(Vulkan REQUIRED)
 
 add_library(${LIBRARY_NAME}
+    #resources/resource_manager.cpp
+    #resources/resource_manager.hpp
     app.cpp
     app.hpp
+    components/material.hpp
+    components/mesh.hpp
+    components/transform.hpp
     devices/window.cpp
     devices/window.hpp
     engine.cpp
@@ -20,14 +25,12 @@ add_library(${LIBRARY_NAME}
     graphics/constants.hpp
     graphics/context.cpp
     graphics/context.hpp
-    graphics/logical_device.cpp
-    graphics/logical_device.hpp
-    graphics/game_object.cpp
-    graphics/game_object.hpp
     graphics/graphics.cpp
     graphics/graphics.hpp
     graphics/instance.cpp
     graphics/instance.hpp
+    graphics/logical_device.cpp
+    graphics/logical_device.hpp
     graphics/material.cpp
     graphics/material.hpp
     graphics/physical_device.cpp
@@ -48,8 +51,8 @@ add_library(${LIBRARY_NAME}
     graphics/texture.hpp
     renderers/sprite_renderer.cpp
     renderers/sprite_renderer.hpp
-    #resources/resource_manager.cpp
-    #resources/resource_manager.hpp
+    scenes/game_object.cpp
+    scenes/game_object.hpp
 )
 
 include_directories(

@@ -22,7 +22,11 @@ include_directories(
 
 add_subdirectory(src/engine)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(${PROJECT_NAME}
+    src/ant.cpp
+    src/ant.hpp
+    src/main.cpp
+)
 
 target_link_libraries(${PROJECT_NAME} engine glfw glm ${GLFW_LIBRARIES} ${Vulkan_LIBRARY_DIR})
 

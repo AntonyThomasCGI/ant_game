@@ -8,7 +8,7 @@
 #include "command_pool.hpp"
 #include "context.hpp"
 #include "devices/window.hpp"
-#include "game_object.hpp"
+#include "scenes/game_object.hpp"
 #include "geometry/shapes/square.hpp"
 #include "instance.hpp"
 #include "logical_device.hpp"

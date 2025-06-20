@@ -45,33 +45,12 @@ void GameObject::setSpritePath(std::string texturePath)
 }
 
 
-void GameObject::move(glm::vec2 trans, float rot)
-{
-    translate += trans;
-    rotate += rot;
-}
-
-glm::mat4 GameObject::getTransform()
-{
-    glm::mat4 transform{1.0f};
-
-    transform = glm::translate(transform, glm::vec3(translate, 0.0f));
-    transform = glm::translate(transform, glm::vec3(rotatePivot, 0.0f));
-    transform = glm::rotate(transform, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f));
-    transform = glm::translate(transform, glm::vec3(-rotatePivot, 0.0f));
-    transform = glm::scale(transform, glm::vec3(baseSize * scale, 1.0f));
-    if (parentObject) {
-        transform = parentObject->getTransform() * transform;
-    }
-
-    return transform;
-}
-
 void GameObject::draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame, size_t meshN = 0)
 {
     material->bindDescriptorSetsWithOffset(commandBuffer, currentFrame, meshN);
 
-    glm::mat4 transform = getTransform();
+    std::shared_ptr<TransformComponent> tc = getComponent<TransformComponent>();
+    glm::mat4 transform = tc->getTransform();
 
     material->updateUniformBuffer(transform, color, currentFrame, meshN);
 
