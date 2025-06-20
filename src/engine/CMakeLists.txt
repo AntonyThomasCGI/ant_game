@@ -49,6 +49,8 @@ add_library(${LIBRARY_NAME}
     graphics/swap_chain.hpp
     graphics/texture.cpp
     graphics/texture.hpp
+    renderers/sprite_renderer.cpp
+    renderers/sprite_renderer.hpp
     scenes/game_object.cpp
     scenes/game_object.hpp
 )
