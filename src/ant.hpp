@@ -8,6 +8,6 @@ class AntGameObject : public GameObject
 {
 
 public:
-    AntGameObject(GraphicsContext &ctx, CommandPool &commandPool, SwapChain &swapChain);
+    AntGameObject();
 
 };

@@ -9,10 +9,8 @@
 #include "graphics.hpp"
 #include "resource_manager.hpp"
 
+#include "components/material.hpp"
 
-// TODO, specific to sprite shader, should probably put this there somewhere
-const std::string vertPath = "resources/shaders/flat_vert.spv";
-const std::string fragPath = "resources/shaders/flat_frag.spv";
 
 
 VulkanGraphics::VulkanGraphics(Window &window)
@@ -52,23 +50,10 @@ VulkanGraphics::~VulkanGraphics()
 
 GameObject* VulkanGraphics::addGameObject()
 {
-    GameObject *gameObj = new GameObject(*ctx, *commandPool, *swapChain);
+    GameObject *gameObj = new GameObject();
     gameObjects.push_back(gameObj);
 
     return gameObj;
-}
-
-
-Material* VulkanGraphics::createSpriteMaterial(std::string texturePath)
-{
-
-    Material* material = new Material(*ctx, *commandPool, *swapChain);
-
-    material->setTexturePath(texturePath);
-
-    material->setShader(*swapChain, vertPath, fragPath);
-
-    return material;
 }
 
 
@@ -162,11 +147,12 @@ void VulkanGraphics::update()
     size_t count = 0;
     // FIXME, sort game objects by material. Right now they just happen to be in correct order.
     for (const auto gameObj : gameObjects) {
-        std::string thisTexture = gameObj->material->getCurrentTexturePath();
+        auto materialComp = gameObj->getComponent<MaterialComponent>();
+        std::string thisTexture = materialComp->material->getCurrentTexturePath();
         if (thisTexture != currentTexture) {
             count = 0;
 
-            gameObj->material->bindPipeline(*commandBuffers[currentFrame].get(), currentFrame);
+            materialComp->material->bindPipeline(*commandBuffers[currentFrame].get(), currentFrame);
             currentTexture = thisTexture;
         }
         gameObj->draw(*commandBuffers[currentFrame].get(), *swapChain, currentFrame, count);

@@ -75,7 +75,7 @@ Shader::~Shader()
 //    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipeline());
 //}
 
-//void Shader::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, SwapChain &swapChain)
+//void Shader::updateUniformBuffer(glm::mat4 transform, uint32_t currentFrame, SwapChain &swapChain)
 //{
 //    UniformBufferObject ubo{};
 //

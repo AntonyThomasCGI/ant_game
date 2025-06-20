@@ -8,5 +8,5 @@
 
 struct MaterialComponent
 {
-    std::unique_ptr<Material> material;
-}
+    std::shared_ptr<Material> material;
+};

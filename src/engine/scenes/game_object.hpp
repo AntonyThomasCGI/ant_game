@@ -15,22 +15,14 @@
 #include "graphics/physical_device.hpp"
 #include "graphics/swap_chain.hpp"
 
-#include "components/transform.hpp"
-
 
 
 class GameObject
 {
 public:
 
-    GameObject(GraphicsContext &ctx, CommandPool &commandPool, SwapChain &swapChain);
+    GameObject();
     ~GameObject();
-
-    void setMaterial(Material *mat);
-
-    void setSpritePath(std::string texturePath);
-
-    glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     template <typename T>
     void addComponent(std::shared_ptr<T> component)
@@ -45,12 +37,7 @@ public:
 
     void draw(CommandBuffer &commandBuffer, SwapChain &swapChain, uint32_t currentFrame, size_t meshN);
 
-    Material *material;
 
 private:
-    GraphicsContext &ctx;
-
     std::unordered_map<std::type_index, std::shared_ptr<void>> components;
-
-    std::unique_ptr<Square> mesh;
 };

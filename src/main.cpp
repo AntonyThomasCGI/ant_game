@@ -13,6 +13,9 @@
 
 #include "engine/app.hpp"
 #include "engine/engine.hpp"
+#include "engine/components/material.hpp"
+#include "engine/components/mesh.hpp"
+#include "engine/components/transform.hpp"
 
 #include "ant.hpp"
 
@@ -21,17 +24,14 @@
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
 
-const unsigned int GRID_WIDTH = WIDTH / 20;
-const unsigned int GRID_HEIGHT = HEIGHT / 20;
-
-
-const std::string dirtSprite = "resources/textures/dirt.png";
+const unsigned int GRID_WIDTH = WIDTH / 40;
+const unsigned int GRID_HEIGHT = HEIGHT / 40;
 
 
 class Grid
 {
 public:
-    const float tileWidth = 20.0;
+    const float tileWidth = 40.0;
 
     Grid(Engine *engine) {
 
@@ -40,20 +40,26 @@ public:
 
         std::cout << "Building grid (" << GRID_WIDTH << ", " << GRID_HEIGHT << ")" << std::endl;
 
-        tileMat = engine->graphics->createSpriteMaterial(dirtSprite);
+        std::shared_ptr<Material> tileMat = std::make_shared<Material>(
+            *engine->graphics->ctx, *engine->graphics->commandPool, *engine->graphics->swapChain);
+
+        tileMat->setTexturePath("resources/textures/dirt.png");
+        tileMat->setShader(
+            *engine->graphics->swapChain, "resources/shaders/flat_vert.spv", "resources/shaders/flat_frag.spv");
         tileMat->setMaxMeshCount(10000);
 
-        std::random_device dev;
-        std::mt19937 rng(dev());
-        std::uniform_int_distribution<std::mt19937::result_type> dist10(1,15);
+        std::shared_ptr<MaterialComponent> tileMatComponent = std::make_shared<MaterialComponent>();
+        tileMatComponent->material = tileMat;
+
+        //std::random_device dev;
+        //std::mt19937 rng(dev());
+        //std::uniform_int_distribution<std::mt19937::result_type> dist10(1,15);
 
         for (int i = 0; i < GRID_HEIGHT; i++ ) {
             for (int j = 0; j < GRID_WIDTH; j++ ) {
                 //std::stringstream s;
                 //s << "tile_" << std::to_string(i) << "_" << std::to_string(j);
                 grid[i][j] = engine->graphics->addGameObject();
-                grid[i][j]->setMaterial(tileMat);
-                //grid[i][j]->setSpritePath(dirtSprite);
 
                 float yPos = i * tileWidth - halfHeight;
                 float xPos = j * tileWidth - halfWidth;
@@ -66,6 +72,14 @@ public:
                 tc->baseSize = glm::vec2(tileWidth);
 
                 grid[i][j]->addComponent(tc);
+
+                std::shared_ptr<MeshComponent> mc = std::make_shared<MeshComponent>();
+                std::shared_ptr<Mesh> square = std::make_shared<Square>(*engine->graphics->ctx);
+                square->createBuffers(*engine->graphics->commandPool);
+                mc->mesh = square;
+
+                grid[i][j]->addComponent(mc);
+                grid[i][j]->addComponent(tileMatComponent);
             }
         }
     }
@@ -80,13 +94,8 @@ public:
         return grid[scaledY][scaledX];
     }
 
-    ~Grid() {
-        delete tileMat;
-    }
-
 private:
     GameObject* grid[GRID_HEIGHT][GRID_WIDTH];
-    Material *tileMat;
 };
 
 
@@ -108,15 +117,34 @@ public:
         //ant2 = engine->graphics->addGameObject();
 
 
-        ant1Mat = engine->graphics->createSpriteMaterial("resources/textures/ant1_no_leg.png");
         //ant2Mat = engine->graphics->createSpriteMaterial("resources/textures/ant2.png");
 
-        ant1->setMaterial(ant1Mat);
-
+        // Transform component
         std::shared_ptr<TransformComponent> tc = std::make_shared<TransformComponent>();
         tc->baseSize = glm::vec2(100.0f);
 
         ant1->addComponent(tc);
+
+        // Mesh component
+        std::shared_ptr<MeshComponent> mc = std::make_shared<MeshComponent>();
+        std::shared_ptr<Mesh> square = std::make_shared<Square>(*engine->graphics->ctx);
+        square->createBuffers(*engine->graphics->commandPool);
+        mc->mesh = square;
+
+        ant1->addComponent(mc);
+
+        // Material component
+        std::shared_ptr<Material> material = std::make_shared<Material>(
+            *engine->graphics->ctx, *engine->graphics->commandPool, *engine->graphics->swapChain);
+
+        material->setTexturePath("resources/textures/ant1_no_leg.png");
+        material->setShader(
+            *engine->graphics->swapChain, "resources/shaders/flat_vert.spv", "resources/shaders/flat_frag.spv");
+
+        std::shared_ptr<MaterialComponent> matc = std::make_shared<MaterialComponent>();
+        matc->material = material;
+
+        ant1->addComponent(matc);
 
 
         //ant1->baseSize = glm::vec2(100.0f);
@@ -162,7 +190,6 @@ public:
 
     ~App()
     {
-        delete ant1Mat;
         //delete ant2Mat;
         //delete ant1legMat;
         //delete ant1leg;
@@ -195,33 +222,27 @@ public:
 
         std::shared_ptr<TransformComponent> tc = ant1->getComponent<TransformComponent>();
 
-        if (keys[GLFW_KEY_W] && !keysProcessed[GLFW_KEY_W])
+        if (keys[GLFW_KEY_W])
         {
             moveX += -velocity * cos(glm::radians(90.0 - tc->rotate));
             moveY += velocity * sin(glm::radians(90.0 - tc->rotate));
         }
-        if (keys[GLFW_KEY_S] && !keysProcessed[GLFW_KEY_S])
+        if (keys[GLFW_KEY_S])
         {
             moveX += velocity * cos(glm::radians(90.0 - tc->rotate));
             moveY += -velocity * sin(glm::radians(90.0 - tc->rotate));
         }
-        if (keys[GLFW_KEY_A] && !keysProcessed[GLFW_KEY_A])
+        if (keys[GLFW_KEY_A])
         {
             rotate += velocity * 0.8;
         }
-        if (keys[GLFW_KEY_D] && !keysProcessed[GLFW_KEY_D])
+        if (keys[GLFW_KEY_D])
         {
             rotate -= velocity * 0.8;
         }
         // Move the square.
         if (moveX != 0 | moveY != 0 | rotate != 0) {
             tc->move(glm::vec2(moveX, moveY), rotate);
-        }
-
-        if (keys[GLFW_KEY_E] && !keysProcessed[GLFW_KEY_E]) {
-            glm::vec3 newColor = glm::vec3(glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f));
-            ant1->color = newColor;
-            keysProcessed[GLFW_KEY_E] = true;
         }
     }
 
@@ -232,7 +253,6 @@ private:
     //GameObject* ant2leg;
     //GameObject* ant3leg;
     //GameObject* ant4leg;
-    Material *ant1Mat;
     //Material *ant2Mat;
     //Material *ant1legMat;
     std::unique_ptr<Grid> grid;

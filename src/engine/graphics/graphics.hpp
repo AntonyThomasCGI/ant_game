@@ -28,17 +28,17 @@ public:
     ~VulkanGraphics();
 
     GameObject* addGameObject();
-    Material* createSpriteMaterial(std::string texturePath);
+
+    std::unique_ptr<GraphicsContext> ctx;
+    std::unique_ptr<CommandPool> commandPool;
+    std::unique_ptr<SwapChain> swapChain;
 
     void update();
 
 private:
     Window &window;
 
-    std::unique_ptr<GraphicsContext> ctx;
 
-    std::unique_ptr<SwapChain> swapChain;
-    std::unique_ptr<CommandPool> commandPool;
     std::unique_ptr<Material> material;
 
     std::vector<GameObject*> gameObjects;

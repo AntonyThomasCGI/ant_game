@@ -4,8 +4,8 @@
 #include "ant.hpp"
 
 
-AntGameObject::AntGameObject(GraphicsContext &ctx, CommandPool &commandPool, SwapChain &swapChain)
-    : GameObject(ctx, commandPool, swapChain)
+AntGameObject::AntGameObject()
+    : GameObject()
 {
     std::cout << "Create ant" << std::endl;
 

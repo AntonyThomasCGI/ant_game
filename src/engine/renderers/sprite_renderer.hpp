@@ -11,7 +11,7 @@ public:
     SpriteRenderer();
     ~SpriteRenderer();
 
-    void draw(glm::mat4 transform);
+    void render();
 
 private:
     //Shader shader;

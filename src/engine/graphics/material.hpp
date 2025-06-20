@@ -24,7 +24,7 @@ public:
     void bindPipeline(CommandBuffer &commandBuffer, uint32_t currentFrame);
     void bindDescriptorSetsWithOffset(CommandBuffer & commandBuffer, uint32_t currentFrame, uint32_t meshN);
 
-    void updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, size_t meshN);
+    void updateUniformBuffer(glm::mat4 transform, uint32_t currentFrame, size_t meshN);
 
     void cleanupDescriptorPool();
     void createDescriptorSets();

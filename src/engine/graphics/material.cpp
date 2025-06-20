@@ -15,7 +15,6 @@ struct UniformBufferObject {
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 proj;
-    glm::vec3 color;
 };
 
 
@@ -127,7 +126,7 @@ void Material::setMaxMeshCount(size_t newValue)
 }
 
 
-void Material::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_t currentFrame, size_t meshN)
+void Material::updateUniformBuffer(glm::mat4 transform, uint32_t currentFrame, size_t meshN)
 {
     UniformBufferObject ubo{};
 
@@ -158,8 +157,6 @@ void Material::updateUniformBuffer(glm::mat4 transform, glm::vec3 color, uint32_
     //ubo.view = glm::scale(glm::mat4(1.0f), glm::vec3((float) swapChain->swapChainExtent.width / (float) swapChain->swapChainExtent.height));
 
     ubo.proj[1][1] *= -1;  // Flip y-axis (open-gl oriented library).
-
-    ubo.color = color;
 
     memcpy((char*)uniformBuffersMapped[currentFrame] + meshN * alignedUboSize, &ubo, sizeof(ubo));
 }

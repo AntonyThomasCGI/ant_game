@@ -6,5 +6,5 @@
 
 
 struct MeshComponent {
-    std::unique_ptr<Mesh> mesh;
+    std::shared_ptr<Mesh> mesh;
 };
