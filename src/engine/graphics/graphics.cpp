@@ -40,20 +40,13 @@ VulkanGraphics::~VulkanGraphics()
 {
     vkWaitForFences(ctx->device->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkDeviceWaitIdle(ctx->device->getDevice());
-
-    for (auto const& gameObj : gameObjects) {
-        delete gameObj;
-    }
     cleanupSyncObjects();
 }
 
 
-GameObject* VulkanGraphics::addGameObject()
+void VulkanGraphics::addGameObject(std::shared_ptr<GameObject> obj)
 {
-    GameObject *gameObj = new GameObject();
-    gameObjects.push_back(gameObj);
-
-    return gameObj;
+    gameObjects.push_back(obj);
 }
 
 

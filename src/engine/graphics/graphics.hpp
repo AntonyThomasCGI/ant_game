@@ -27,7 +27,7 @@ public:
     VulkanGraphics(Window &window);
     ~VulkanGraphics();
 
-    GameObject* addGameObject();
+    void addGameObject(std::shared_ptr<GameObject> obj);
 
     std::unique_ptr<GraphicsContext> ctx;
     std::unique_ptr<CommandPool> commandPool;
@@ -41,7 +41,7 @@ private:
 
     std::unique_ptr<Material> material;
 
-    std::vector<GameObject*> gameObjects;
+    std::vector<std::shared_ptr<GameObject>> gameObjects;
 
     std::vector<std::unique_ptr<CommandBuffer>> commandBuffers;
 

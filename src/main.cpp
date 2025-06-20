@@ -59,7 +59,8 @@ public:
             for (int j = 0; j < GRID_WIDTH; j++ ) {
                 //std::stringstream s;
                 //s << "tile_" << std::to_string(i) << "_" << std::to_string(j);
-                grid[i][j] = engine->graphics->addGameObject();
+                grid[i][j] = std::make_shared<GameObject>();
+                engine->graphics->addGameObject(grid[i][j]);
 
                 float yPos = i * tileWidth - halfHeight;
                 float xPos = j * tileWidth - halfWidth;
@@ -84,7 +85,7 @@ public:
         }
     }
 
-    GameObject* gameObjectAt(float worldY, float worldX) {
+    std::shared_ptr<GameObject> gameObjectAt(float worldY, float worldX) {
         float halfWidth = (WIDTH - tileWidth) / 2.0f;
         float halfHeight = (HEIGHT - tileWidth) / 2.0f;
 
@@ -95,7 +96,7 @@ public:
     }
 
 private:
-    GameObject* grid[GRID_HEIGHT][GRID_WIDTH];
+    std::shared_ptr<GameObject> grid[GRID_HEIGHT][GRID_WIDTH];
 };
 
 
@@ -113,7 +114,10 @@ public:
 
         grid = std::make_unique<Grid>(engine);
 
-        ant1 = engine->graphics->addGameObject();
+        ant1 = std::make_shared<GameObject>();
+        engine->graphics->addGameObject(ant1);
+
+        //ant1 = engine->graphics->addGameObject();
         //ant2 = engine->graphics->addGameObject();
 
 
@@ -247,7 +251,7 @@ public:
     }
 
 private:
-    GameObject* ant1;
+    std::shared_ptr<GameObject> ant1;
     //GameObject* ant2;
     //GameObject* ant1leg;
     //GameObject* ant2leg;

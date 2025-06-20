@@ -34,5 +34,4 @@ GraphicsContext::GraphicsContext(Window &window)
 
 GraphicsContext::~GraphicsContext()
 {
-    vmaDestroyAllocator(allocator);
 }
