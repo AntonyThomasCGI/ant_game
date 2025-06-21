@@ -65,8 +65,6 @@ public:
                 float yPos = i * tileWidth - halfHeight;
                 float xPos = j * tileWidth - halfWidth;
 
-                grid[i][j]->translate = glm::vec2(xPos, yPos);
-                grid[i][j]->baseSize = glm::vec2(tileWidth);
                 std::shared_ptr<TransformComponent> tc = std::make_shared<TransformComponent>();
 
                 tc->translate = glm::vec2(xPos, yPos);
