@@ -70,7 +70,7 @@ public:
                 std::shared_ptr<TransformComponent> tc = std::make_shared<TransformComponent>();
 
                 tc->translate = glm::vec2(xPos, yPos);
-                tc->baseSize = glm::vec2(tileWidth);
+                tc->scale = glm::vec2(tileWidth);
 
                 grid[i][j]->addComponent(tc);
 
@@ -108,50 +108,14 @@ public:
 
     App(unsigned int width, unsigned int height, int argc, char **argv) : AppBase(width, height, argc, argv)
     {
-
-
-        //testAnt = std::make_unique<AntGameObject>(engine->graphics->ctx);
-
         grid = std::make_unique<Grid>(engine);
 
-        ant1 = std::make_shared<GameObject>();
+        ant1 = std::make_shared<AntGameObject>(engine);
+
         engine->graphics->addGameObject(ant1);
 
-        //ant1 = engine->graphics->addGameObject();
-        //ant2 = engine->graphics->addGameObject();
 
-
-        //ant2Mat = engine->graphics->createSpriteMaterial("resources/textures/ant2.png");
-
-        // Transform component
-        std::shared_ptr<TransformComponent> tc = std::make_shared<TransformComponent>();
-        tc->baseSize = glm::vec2(100.0f);
-
-        ant1->addComponent(tc);
-
-        // Mesh component
-        std::shared_ptr<MeshComponent> mc = std::make_shared<MeshComponent>();
-        std::shared_ptr<Mesh> square = std::make_shared<Square>(*engine->graphics->ctx);
-        square->createBuffers(*engine->graphics->commandPool);
-        mc->mesh = square;
-
-        ant1->addComponent(mc);
-
-        // Material component
-        std::shared_ptr<Material> material = std::make_shared<Material>(
-            *engine->graphics->ctx, *engine->graphics->commandPool, *engine->graphics->swapChain);
-
-        material->setTexturePath("resources/textures/ant1_no_leg.png");
-        material->setShader(
-            *engine->graphics->swapChain, "resources/shaders/flat_vert.spv", "resources/shaders/flat_frag.spv");
-
-        std::shared_ptr<MaterialComponent> matc = std::make_shared<MaterialComponent>();
-        matc->material = material;
-
-        ant1->addComponent(matc);
-
-
-        //ant1->baseSize = glm::vec2(100.0f);
+        //ant1->scale = glm::vec2(100.0f);
         //ant2->setMaterial(ant2Mat);
 
         //ant1leg = engine->graphics->addGameObject();
@@ -164,16 +128,16 @@ public:
         //ant3leg->setMaterial(ant1legMat);
         //ant4leg->setMaterial(ant1legMat);
 
-        //ant1leg->baseSize = glm::vec2(0.5f);
+        //ant1leg->scale = glm::vec2(0.5f);
         //ant1leg->rotatePivot = glm::vec2(0.0f, 0.25f);
 
-        //ant2leg->baseSize = glm::vec2(0.5f);
+        //ant2leg->scale = glm::vec2(0.5f);
         //ant2leg->rotatePivot = glm::vec2(0.0f, 0.25f);
 
-        //ant3leg->baseSize = glm::vec2(0.5f);
+        //ant3leg->scale = glm::vec2(0.5f);
         //ant3leg->rotatePivot = glm::vec2(0.0f, -0.25f);
 
-        //ant4leg->baseSize = glm::vec2(0.5f);
+        //ant4leg->scale = glm::vec2(0.5f);
         //ant4leg->rotatePivot = glm::vec2(0.0f, -0.25f);
 
         //ant1leg->translate = glm::vec2(0.0f, -0.2f);
@@ -189,7 +153,7 @@ public:
         //ant3leg->parentObject = ant1;
         //ant4leg->parentObject = ant1;
 
-        //ant2->baseSize = glm::vec2(50.0f);
+        //ant2->scale = glm::vec2(50.0f);
     }
 
     ~App()
@@ -203,6 +167,7 @@ public:
     }
 
     void update(float deltaTime) {
+        ant1->update(deltaTime);
         //ant2->move(glm::vec2(0.0f), 200.0f * deltaTime);
         //ant1leg->rotate = glm::sin(glfwGetTime() * 5.0f) * 45.0f + 90.0f;
         //ant2leg->rotate = glm::cos(glfwGetTime() * 5.0f) * 45.0f + 90.0f;
@@ -251,7 +216,7 @@ public:
     }
 
 private:
-    std::shared_ptr<GameObject> ant1;
+    std::shared_ptr<AntGameObject> ant1;
     //GameObject* ant2;
     //GameObject* ant1leg;
     //GameObject* ant2leg;
@@ -260,7 +225,6 @@ private:
     //Material *ant2Mat;
     //Material *ant1legMat;
     std::unique_ptr<Grid> grid;
-    std::unique_ptr<AntGameObject> testAnt;
 };
 
 

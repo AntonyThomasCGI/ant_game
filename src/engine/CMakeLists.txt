@@ -53,6 +53,8 @@ add_library(${LIBRARY_NAME}
     renderers/sprite_renderer.hpp
     scenes/game_object.cpp
     scenes/game_object.hpp
+    scenes/locator.cpp
+    scenes/locator.hpp
 )
 
 include_directories(

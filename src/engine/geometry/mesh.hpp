@@ -4,6 +4,8 @@
 
 #include <vk_mem_alloc.h>
 
+#include <glm/glm.hpp>
+
 #include "graphics/command_buffer.hpp"
 #include "graphics/command_pool.hpp"
 #include "graphics/context.hpp"

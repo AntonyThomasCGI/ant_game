@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <typeindex>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -40,4 +41,5 @@ public:
 
 private:
     std::unordered_map<std::type_index, std::shared_ptr<void>> components;
+
 };
