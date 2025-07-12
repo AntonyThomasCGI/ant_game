@@ -26,6 +26,8 @@ public:
         float rotateOffset;
         glm::vec2 scaleOffset;
 
+        bool isLeft = true;
+
         glm::vec2 target;  // World space target position (point leg at).
     };
 

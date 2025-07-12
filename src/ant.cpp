@@ -6,9 +6,13 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 
+
 #include "ant.hpp"
 #include <glm/gtx/matrix_decompose.hpp>
 
+
+const int LEG_COUNT = 6;
+const bool DEBUG = false;
 
 
 AntGameObject::AntGameObject(Engine *engine)
@@ -52,18 +56,18 @@ AntGameObject::AntGameObject(Engine *engine)
     legMaterialComponent = std::make_shared<MaterialComponent>();
     legMaterialComponent->material = legMat;
 
-    for (uint16_t i = 0; i < 6; i++) {
+    for (uint16_t i = 0; i < LEG_COUNT; i++) {
         auto leg = createLeg(engine);
         legs[i] = leg;
 
         LegState state;
         switch (i) {
-            case 0: state.translateOffset = glm::vec2(0.06f, -0.15f);  state.rotateOffset = 90.0f;  state.scaleOffset = glm::vec2(0.4, 0.4);  state.target = glm::vec2(30.0f, 30.0f); break;
-            case 2: state.translateOffset = glm::vec2(0.08f, -0.22f);  state.rotateOffset = 90.0f;  state.scaleOffset = glm::vec2(0.4, 0.4);  state.target = glm::vec2(30.0f, -5.0f); break;
-            case 1: state.translateOffset = glm::vec2(0.04f, -0.3f);   state.rotateOffset = 90.0f;  state.scaleOffset = glm::vec2(0.4, 0.4);  state.target = glm::vec2(30.0f, -15.0f); break;
-            case 3: state.translateOffset = glm::vec2(-0.06f, -0.15f); state.rotateOffset = -90.0f; state.scaleOffset = glm::vec2(-0.4, 0.4); state.target = glm::vec2(-30.0f, 15.0f); break;
-            case 5: state.translateOffset = glm::vec2(-0.08f, -0.22f); state.rotateOffset = -90.0f; state.scaleOffset = glm::vec2(-0.4, 0.4); state.target = glm::vec2(-30.0f, 5.0f); break;
-            case 4: state.translateOffset = glm::vec2(-0.04f, -0.3f);  state.rotateOffset = -90.0f; state.scaleOffset = glm::vec2(-0.4, 0.4); state.target = glm::vec2(-30.0f, -30.0f); break;
+            case 0: state.translateOffset = glm::vec2(0.06f, -0.15f);  state.rotateOffset = 90.0f;  state.scaleOffset = glm::vec2(0.4, 0.4);  state.target = glm::vec2(30.0f, 30.0f); state.isLeft = false; break;
+            case 1: state.translateOffset = glm::vec2(-0.06f, -0.15f); state.rotateOffset = -90.0f; state.scaleOffset = glm::vec2(-0.4, 0.4); state.target = glm::vec2(-30.0f, 5.0f); break;
+            case 2: state.translateOffset = glm::vec2(0.08f, -0.22f);   state.rotateOffset = 90.0f;  state.scaleOffset = glm::vec2(0.4, 0.4);  state.target = glm::vec2(30.0f, -5.0f); state.isLeft = false; break;
+            case 3: state.translateOffset = glm::vec2(-0.08f, -0.22f);  state.rotateOffset = -90.0f; state.scaleOffset = glm::vec2(-0.4, 0.4); state.target = glm::vec2(-30.0f, 15.0f); break;
+            case 4: state.translateOffset = glm::vec2(0.04f, -0.3f);  state.rotateOffset = 90.0f;  state.scaleOffset = glm::vec2(0.4, 0.4);  state.target = glm::vec2(30.0f, -15.0f); state.isLeft = false; break;
+            case 5: state.translateOffset = glm::vec2(-0.04f, -0.3f); state.rotateOffset = -90.0f; state.scaleOffset = glm::vec2(-0.4, 0.4); state.target = glm::vec2(-30.0f, -30.0f); break;
         }
         legStates[i] = state;
 
@@ -74,11 +78,13 @@ AntGameObject::AntGameObject(Engine *engine)
         tc->rotatePivot = glm::vec2(0.0f, 0.2f);
     }
 
-    //for (uint16_t i = 0; i < 6; i++) {
-    //    std::shared_ptr<Locator> locator = std::make_unique<Locator>(engine, legStates[i].target.x, legStates[i].target.y);
-    //    engine->graphics->addGameObject(locator);
-    //    locators[i] = locator;
-    //}
+    if ( DEBUG ) {
+        for (uint16_t i = 0; i < LEG_COUNT; i++) {
+            std::shared_ptr<Locator> locator = std::make_unique<Locator>(engine, legStates[i].target.x, legStates[i].target.y);
+            engine->graphics->addGameObject(locator);
+            locators[i] = locator;
+        }
+    }
 
 
     // Create six leg GameObjects
@@ -112,8 +118,9 @@ std::shared_ptr<GameObject> AntGameObject::createLeg(Engine *engine)
 
 void AntGameObject::update(float deltaTime)
 {
+    //return;
     // Calculate basic IK for legs.
-    for (uint16_t i = 0; i < 6; i++) {
+    for (uint16_t i = 0; i < LEG_COUNT; i++) {
         std::shared_ptr<GameObject> leg = legs[i];
         auto legTC = leg->getComponent<TransformComponent>();
 
@@ -135,7 +142,9 @@ void AntGameObject::update(float deltaTime)
 
             glm::mat4 antTransform = legTC->parentObject->getTransform();
 
-            glm::vec3 newTargetVec = i < 3 ? glm::vec3(0.3f, 0.4f, 0.0) : glm::vec3(-0.3f, 0.4f, 0.0);
+            std::cout << legStates[i].isLeft << std::endl;
+
+            glm::vec3 newTargetVec = legStates[i].isLeft ? glm::vec3(-0.3f, 0.4f, 0.0) : glm::vec3(0.3f, 0.4f, 0.0);
             glm::mat4 targetTransform{1.0f};
             targetTransform = glm::translate(targetTransform, newTargetVec);
 
@@ -150,8 +159,10 @@ void AntGameObject::update(float deltaTime)
             legStates[i].target = newWorldPosition;
             std::cout << "Repositioning target to " << newWorldPosition.x << ", " << newWorldPosition.y << std::endl;
 
-            //auto locTC = locators[i]->getComponent<TransformComponent>();
-            //locTC->translate = newWorldPosition;
+            if ( DEBUG ) {
+                auto locTC = locators[i]->getComponent<TransformComponent>();
+                locTC->translate = newWorldPosition;
+            }
 
             toTargetVec = legStates[i].target - worldTranslate;
         }
@@ -161,7 +172,7 @@ void AntGameObject::update(float deltaTime)
         float toTargetDeg = toTargetRad * (180.0 / M_PI);
 
 
-        float sideAdjusted = i < 3 ? toTargetDeg : toTargetDeg -= 180.0;
+        float sideAdjusted = legStates[i].isLeft ? toTargetDeg -= 180.0 : toTargetDeg;
 
         float parentRot = legTC->parentObject->rotate;
         //float normalizedParentRot = parentRot - (360.0 * float((int)parentRot % 360));
